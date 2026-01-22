@@ -3,33 +3,36 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:50
 
 // API Endpoints
 export const API_ENDPOINTS = {
-  // Auth
-  LOGIN: '/api/auth/login',
-  REGISTER: '/api/auth/register',
-  LOGOUT: '/api/auth/logout',
-  REFRESH_TOKEN: '/api/auth/refresh',
-  FORGOT_PASSWORD: '/api/auth/forgot-password',
-  RESET_PASSWORD: '/api/auth/reset-password',
-  VERIFY_EMAIL: '/api/auth/verify-email',
-  RESEND_VERIFICATION: '/api/auth/resend-verification',
+  // Auth (no /api prefix)
+  LOGIN: '/auth/login',
+  REGISTER: '/auth/register',
+  LOGOUT: '/auth/logout',
+  REFRESH_TOKEN: '/auth/refresh',
+  FORGOT_PASSWORD: '/auth/forgotpassword',
+  RESET_PASSWORD: '/auth/resetpassword',
+  VERIFY_EMAIL: '/auth/verifyemail',
+  RESEND_VERIFICATION: '/auth/resend-verification',
+  PROFILE: '/api/profile',
   
   // Tasks
   TASKS: '/api/tasks',
   TASK_BY_ID: (id) => `/api/tasks/${id}`,
   
-  // Busy Blocks
-  BUSY_BLOCKS: '/api/busy-blocks',
-  BUSY_BLOCK_BY_ID: (id) => `/api/busy-blocks/${id}`,
+  // Busy Blocks (lowercase, no hyphen)
+  BUSY_BLOCKS: '/api/busyblocks',
+  BUSY_BLOCK_BY_ID: (id) => `/api/busyblocks/${id}`,
   
   // Plans
   PLANS: '/api/plans',
   GENERATE_PLAN: '/api/plans/generate',
-  PLAN_BLOCKS: '/api/plan/blocks',
-  BLOCK_DONE: (blockId) => `/api/plan/blocks/${blockId}/done`,
-  BLOCK_MISSED: (blockId) => `/api/plan/blocks/${blockId}/missed`,
+  ADD_PLAN_BLOCK: '/api/plans/blockplan',
+  BLOCK_DONE: (blockId) => `/api/plans/blocks/${blockId}/done`,
+  BLOCK_MISSED: (blockId) => `/api/plans/blocks/${blockId}/missed`,
   
   // Users
-  USER_PROFILE: '/api/users/profile',
+  ME: '/api/me',
+  USERS: '/api/users',
+  USER_BY_ID: (id) => `/api/users/${id}`,
 };
 
 // Task Priority Levels
