@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-query": "^5.90.19",
+    "axios": "^1.13.2",
+    "date-fns": "^4.1.0",
+    "react-datepicker": "^9.1.0",
+    "react-hook-form": "^7.71.1",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.12.0",
+    "zod": "^4.3.5",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  }
+}
