@@ -1,0 +1,50 @@
+import express from "express"; 
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import authRoutes from "./routes/auth.routes.js";
+import plansRoutes from "./routes/plans.routes.js";
+import tasksRoutes from "./routes/tasks.routes.js";
+import usersRoutes from "./routes/users.routes.js"; 
+import busyBlocksRoutes from "./routes/busyBlocks.routes.js";
+import cookieParser from "cookie-parser";
+import pool from './db/pool.js';
+import { notFound, errorHandler } from "./middleware/errorHandler.js";
+
+const app = express();
+
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  credentials: true
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+app.use(cookieParser());
+app.use(express.json());
+app.use("/", authRoutes);
+app.use("/", plansRoutes);
+app.use("/", tasksRoutes);
+app.use("/",usersRoutes);
+app.use("/",busyBlocksRoutes);
+app.get("/health", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.json({ db: "ok", time: result.rows[0].now });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Database connection failed" });
+  }
+});
+
+// Error handling middleware (must be after all routes)
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;
