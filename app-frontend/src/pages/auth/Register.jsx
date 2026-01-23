@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,7 +43,7 @@ const Register = () => {
   };
 
   // Update password strength when password changes
-  useState(() => {
+  useEffect(() => {
     setPasswordStrength(calculatePasswordStrength(password));
   }, [password]);
 

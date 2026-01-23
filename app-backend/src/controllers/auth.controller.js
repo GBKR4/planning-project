@@ -60,7 +60,7 @@ export const Login = asyncHandler(async (req, res) => {
 
     //const find user
     const result = await pool.query(
-        "SELECT id,password_hash FROM users WHERE email = $1", [data.email]
+        "SELECT id, name, email, email_verified, password_hash FROM users WHERE email = $1", [data.email]
     );
 
     if (result.rowCount === 0) {
@@ -92,18 +92,28 @@ export const Login = asyncHandler(async (req, res) => {
     //SET COOKIES
     res.cookie("token", token, {
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 24 * 60 * 60 * 1000
     });
 
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         secure: process.env.NODE_ENV === 'production',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    return res.json({ message: "Login Successful" });
+    // Return user data and token
+    return res.json({ 
+        message: "Login Successful",
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            email_verified: user.email_verified
+        },
+        token 
+    });
 });
 
 export const Logout = asyncHandler(async (req, res) => {

@@ -5,7 +5,7 @@ export const getMe = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
 
   const result = await pool.query(
-    "SELECT id, name, email, created_at FROM users WHERE id = $1",
+    "SELECT id, name, email, email_verified, created_at FROM users WHERE id = $1",
     [userId]
   );
 
