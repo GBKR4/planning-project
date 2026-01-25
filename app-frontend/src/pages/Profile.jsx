@@ -7,8 +7,8 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import Button from '../components/common/Button';
 import ChangePasswordModal from '../components/profile/ChangePasswordModal';
 import DeleteAccountModal from '../components/profile/DeleteAccountModal';
-import { useUser } from '../hooks/useUsers';
-import { updateProfile } from '../api/usersApi';
+import { useMe, useUpdateProfile } from '../hooks/useUsers';
+import { resendVerification } from '../api/authApi';
 import useAuth from '../hooks/useAuth';
 import { format } from 'date-fns';
 import showToast from '../utils/toast';
@@ -20,11 +20,11 @@ const profileSchema = z.object({
 
 const Profile = () => {
   const { user: authUser } = useAuth();
-  const { data: user, isLoading } = useUser();
+  const { data: user, isLoading } = useMe();
+  const updateProfileMutation = useUpdateProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const {
     register,
@@ -40,21 +40,27 @@ const Profile = () => {
   });
 
   const onSubmit = async (data) => {
-    setIsSaving(true);
     try {
-      await updateProfile(data);
+      await updateProfileMutation.mutateAsync(data);
       showToast.success('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
       showToast.error(error.response?.data?.message || 'Failed to update profile');
-    } finally {
-      setIsSaving(false);
     }
   };
 
   const handleCancelEdit = () => {
     reset();
     setIsEditing(false);
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await resendVerification({ email: user?.email });
+      showToast.success('Verification email sent! Check your inbox.');
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to send verification email');
+    }
   };
 
   if (isLoading) {
@@ -128,7 +134,7 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="flex gap-3 pt-2">
-                    <Button type="submit" loading={isSaving}>
+                    <Button type="submit" loading={updateProfileMutation.isPending}>
                       Save Changes
                     </Button>
                     <Button type="button" variant="outline" onClick={handleCancelEdit}>
@@ -176,7 +182,10 @@ const Profile = () => {
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
                         ⚠ Email Not Verified
                       </span>
-                      <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                      <button 
+                        onClick={handleResendVerification}
+                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                      >
                         Resend verification email
                       </button>
                     </>

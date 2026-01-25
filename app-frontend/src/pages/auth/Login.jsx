@@ -30,11 +30,17 @@ const Login = () => {
     try {
       const response = await loginApi(data);
       
+      console.log('Login response:', response);
+      
       // Store user and token
       setAuth(response.user, response.token);
       
+      console.log('Auth state updated, navigating to dashboard...');
+      
       toast.success('Login successful!');
-      navigate('/dashboard');
+      
+      // Force redirect using window.location as fallback
+      window.location.href = '/dashboard';
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed. Please try again.';
       toast.error(message);

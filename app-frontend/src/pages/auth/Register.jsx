@@ -55,12 +55,15 @@ const Register = () => {
       await registerApi(registrationData);
       
       toast.success('Account created successfully! Please check your email to verify your account.');
-      navigate('/login');
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error(message);
       console.error('Registration error:', error);
-    } finally {
       setIsLoading(false);
     }
   };

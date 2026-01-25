@@ -2,10 +2,9 @@ import { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import Modal from '../components/common/Modal';
 import TaskForm from '../components/tasks/TaskForm';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { TasksPageSkeleton } from '../components/common/SkeletonLoader';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, useMarkTaskDone, useMarkTaskTodo } from '../hooks/useTasks';
 import { format } from 'date-fns';
-import showToast from '../utils/toast';
 
 const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,48 +19,27 @@ const Tasks = () => {
   const markTodo = useMarkTaskTodo();
 
   const handleCreateTask = async (data) => {
-    try {
-      await createTask.mutateAsync(data);
-      showToast.success('Task created successfully!');
-      setIsModalOpen(false);
-    } catch (error) {
-      showToast.error(error.response?.data?.message || 'Failed to create task');
-    }
+    await createTask.mutateAsync(data);
+    setIsModalOpen(false);
   };
 
   const handleUpdateTask = async (data) => {
-    try {
-      await updateTask.mutateAsync({ taskId: editingTask.id, data });
-      showToast.success('Task updated successfully!');
-      setIsModalOpen(false);
-      setEditingTask(null);
-    } catch (error) {
-      showToast.error(error.response?.data?.message || 'Failed to update task');
-    }
+    await updateTask.mutateAsync({ taskId: editingTask.id, data });
+    setIsModalOpen(false);
+    setEditingTask(null);
   };
 
   const handleDeleteTask = async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
-      try {
-        await deleteTask.mutateAsync(taskId);
-        showToast.success('Task deleted successfully!');
-      } catch (error) {
-        showToast.error(error.response?.data?.message || 'Failed to delete task');
-      }
+      await deleteTask.mutateAsync(taskId);
     }
   };
 
   const handleToggleStatus = async (task) => {
-    try {
-      if (task.status === 'todo') {
-        await markDone.mutateAsync(task.id);
-        showToast.success('Task marked as done!');
-      } else {
-        await markTodo.mutateAsync(task.id);
-        showToast.success('Task marked as todo!');
-      }
-    } catch (error) {
-      showToast.error(error.response?.data?.message || 'Failed to update task status');
+    if (task.status === 'todo') {
+      await markDone.mutateAsync(task.id);
+    } else {
+      await markTodo.mutateAsync(task.id);
     }
   };
 
@@ -83,7 +61,7 @@ const Tasks = () => {
   if (isLoading) {
     return (
       <Layout>
-        <LoadingSpinner size="lg" className="mt-20" />
+        <TasksPageSkeleton />
       </Layout>
     );
   }

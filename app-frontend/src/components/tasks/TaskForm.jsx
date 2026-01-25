@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { taskSchema } from '../../utils/validation';
@@ -10,6 +10,7 @@ const TaskForm = ({ onSubmit, initialData, isLoading }) => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(taskSchema),
     defaultValues: initialData || {
@@ -20,6 +21,17 @@ const TaskForm = ({ onSubmit, initialData, isLoading }) => {
       priority: 3,
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    reset(initialData || {
+      title: '',
+      notes: '',
+      estimatedMinutes: 30,
+      deadlineAt: '',
+      priority: 3,
+    });
+  }, [initialData, reset]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

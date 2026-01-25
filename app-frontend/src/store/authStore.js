@@ -10,10 +10,8 @@ const useAuthStore = create((set) => ({
   
   // Set user and token after login/register
   login: (user, token) => {
-    if (!USE_MOCK_DATA) {
-      setUser(user);
-      setAccessToken(token);
-    }
+    setUser(user);
+    setAccessToken(token);
     set({ user, token, isAuthenticated: true });
   },
   

@@ -5,7 +5,8 @@ import {
   getMe,
   getUsers,
   getUserById,
-  deleteUser
+  deleteUser,
+  updateProfile
 } from '../api/usersApi';
 
 // Query keys
@@ -72,6 +73,26 @@ export const useDeleteUser = () => {
     onError: (error) => {
       const message = error.response?.data?.message || 'Failed to delete user';
       toast.error(message);
+    },
+  });
+};
+
+/**
+ * Update current user profile
+ */
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+  const { updateUser } = useAuthStore();
+
+  return useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (data) => {
+      // Update the user data in cache
+      queryClient.invalidateQueries({ queryKey: USER_KEYS.me() });
+      // Update auth store
+      if (data.user) {
+        updateUser(data.user);
+      }
     },
   });
 };

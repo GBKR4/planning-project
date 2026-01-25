@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import Layout from '../components/layout/Layout';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { PlannerPageSkeleton } from '../components/common/SkeletonLoader';
 import { usePlan, useGeneratePlan, useMarkBlockDone, useMarkBlockMissed } from '../hooks/usePlans';
 import { useTasks } from '../hooks/useTasks';
 import { format } from 'date-fns';
 import { PRIORITY_COLORS } from '../utils/constants';
-import showToast from '../utils/toast';
 
 const Planner = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -19,35 +18,20 @@ const Planner = () => {
   const markBlockMissed = useMarkBlockMissed();
 
   const handleGeneratePlan = async () => {
-    try {
-      await generatePlan.mutateAsync({
-        date: selectedDate,
-        workStart,
-        workEnd,
-      });
-      showToast.success('Plan generated successfully!');
-    } catch (error) {
-      showToast.error(error.response?.data?.message || 'Failed to generate plan');
-    }
+    await generatePlan.mutateAsync({
+      date: selectedDate,
+      workStart,
+      workEnd,
+    });
   };
 
   const handleMarkDone = async (blockId) => {
-    try {
-      await markBlockDone.mutateAsync(blockId);
-      showToast.success('Block marked as done!');
-    } catch (error) {
-      showToast.error(error.response?.data?.message || 'Failed to mark block as done');
-    }
+    await markBlockDone.mutateAsync(blockId);
   };
 
   const handleMarkMissed = async (blockId) => {
     if (window.confirm('Mark this block as missed?')) {
-      try {
-        await markBlockMissed.mutateAsync(blockId);
-        showToast.success('Block marked as missed');
-      } catch (error) {
-        showToast.error(error.response?.data?.message || 'Failed to mark block as missed');
-      }
+      await markBlockMissed.mutateAsync(blockId);
     }
   };
 
@@ -115,7 +99,7 @@ const Planner = () => {
 
         {/* Plan View */}
         {planLoading ? (
-          <LoadingSpinner size="lg" className="mt-12" />
+          <PlannerPageSkeleton />
         ) : plan ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Scheduled Blocks */}

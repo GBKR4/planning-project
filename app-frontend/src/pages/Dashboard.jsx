@@ -2,18 +2,32 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { useTasks } from '../hooks/useTasks';
 import { usePlan } from '../hooks/usePlans';
+import { useMe } from '../hooks/useUsers';
+import { resendVerification } from '../api/authApi';
 import { format } from 'date-fns';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { DashboardSkeleton } from '../components/common/SkeletonLoader';
+import showToast from '../utils/toast';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
   const today = format(new Date(), 'yyyy-MM-dd');
   const { data: tasks, isLoading: tasksLoading } = useTasks();
   const { data: planData, isLoading: planLoading } = usePlan(today);
+  const { data: user } = useMe();
+
+  const handleResendVerification = async () => {
+    try {
+      await resendVerification({ email: user?.email });
+      showToast.success('Verification email sent! Check your inbox.');
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to send verification email');
+    }
+  };
 
   if (tasksLoading || planLoading) {
     return (
       <Layout>
-        <LoadingSpinner size="lg" className="mt-20" />
+        <DashboardSkeleton />
       </Layout>
     );
   }
@@ -26,6 +40,31 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="space-y-8">
+        {/* Email Verification Banner */}
+        {user && !user.email_verified && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+            <div className="flex items-start">
+              <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mt-0.5" />
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Email not verified
+                </h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <p>
+                    Please verify your email address to access all features.{' '}
+                    <button
+                      onClick={handleResendVerification}
+                      className="font-medium underline hover:text-yellow-600"
+                    >
+                      Resend verification email
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { busyBlockSchema } from '../../utils/validation';
@@ -8,6 +9,7 @@ const BusyBlockForm = ({ onSubmit, initialData, isLoading }) => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(busyBlockSchema),
     defaultValues: initialData || {
@@ -16,6 +18,15 @@ const BusyBlockForm = ({ onSubmit, initialData, isLoading }) => {
       endAt: '',
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    reset(initialData || {
+      title: '',
+      startAt: '',
+      endAt: '',
+    });
+  }, [initialData, reset]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
