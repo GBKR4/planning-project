@@ -5,6 +5,7 @@ import TaskForm from '../components/tasks/TaskForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, useMarkTaskDone, useMarkTaskTodo } from '../hooks/useTasks';
 import { format } from 'date-fns';
+import showToast from '../utils/toast';
 
 const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,27 +20,48 @@ const Tasks = () => {
   const markTodo = useMarkTaskTodo();
 
   const handleCreateTask = async (data) => {
-    await createTask.mutateAsync(data);
-    setIsModalOpen(false);
+    try {
+      await createTask.mutateAsync(data);
+      showToast.success('Task created successfully!');
+      setIsModalOpen(false);
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to create task');
+    }
   };
 
   const handleUpdateTask = async (data) => {
-    await updateTask.mutateAsync({ taskId: editingTask.id, data });
-    setIsModalOpen(false);
-    setEditingTask(null);
+    try {
+      await updateTask.mutateAsync({ taskId: editingTask.id, data });
+      showToast.success('Task updated successfully!');
+      setIsModalOpen(false);
+      setEditingTask(null);
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to update task');
+    }
   };
 
   const handleDeleteTask = async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
-      await deleteTask.mutateAsync(taskId);
+      try {
+        await deleteTask.mutateAsync(taskId);
+        showToast.success('Task deleted successfully!');
+      } catch (error) {
+        showToast.error(error.response?.data?.message || 'Failed to delete task');
+      }
     }
   };
 
   const handleToggleStatus = async (task) => {
-    if (task.status === 'todo') {
-      await markDone.mutateAsync(task.id);
-    } else {
-      await markTodo.mutateAsync(task.id);
+    try {
+      if (task.status === 'todo') {
+        await markDone.mutateAsync(task.id);
+        showToast.success('Task marked as done!');
+      } else {
+        await markTodo.mutateAsync(task.id);
+        showToast.success('Task marked as todo!');
+      }
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to update task status');
     }
   };
 

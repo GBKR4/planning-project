@@ -5,6 +5,7 @@ import BusyBlockForm from '../components/blocks/BusyBlockForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useBusyBlocks, useCreateBusyBlock, useDeleteBusyBlock } from '../hooks/useBusyBlocks';
 import { format, differenceInMinutes } from 'date-fns';
+import showToast from '../utils/toast';
 
 const BusyBlocks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,13 +15,23 @@ const BusyBlocks = () => {
   const deleteBlock = useDeleteBusyBlock();
 
   const handleCreateBlock = async (data) => {
-    await createBlock.mutateAsync(data);
-    setIsModalOpen(false);
+    try {
+      await createBlock.mutateAsync(data);
+      showToast.success('Busy block created successfully!');
+      setIsModalOpen(false);
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to create busy block');
+    }
   };
 
   const handleDeleteBlock = async (blockId) => {
     if (window.confirm('Are you sure you want to delete this busy block?')) {
-      await deleteBlock.mutateAsync(blockId);
+      try {
+        await deleteBlock.mutateAsync(blockId);
+        showToast.success('Busy block deleted successfully!');
+      } catch (error) {
+        showToast.error(error.response?.data?.message || 'Failed to delete busy block');
+      }
     }
   };
 

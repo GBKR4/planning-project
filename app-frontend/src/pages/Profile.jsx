@@ -1,14 +1,61 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import Button from '../components/common/Button';
+import ChangePasswordModal from '../components/profile/ChangePasswordModal';
+import DeleteAccountModal from '../components/profile/DeleteAccountModal';
 import { useUser } from '../hooks/useUsers';
+import { updateProfile } from '../api/usersApi';
 import useAuth from '../hooks/useAuth';
 import { format } from 'date-fns';
+import showToast from '../utils/toast';
+
+const profileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+});
 
 const Profile = () => {
   const { user: authUser } = useAuth();
   const { data: user, isLoading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: zodResolver(profileSchema),
+    values: {
+      name: user?.name || '',
+      email: user?.email || '',
+    },
+  });
+
+  const onSubmit = async (data) => {
+    setIsSaving(true);
+    try {
+      await updateProfile(data);
+      showToast.success('Profile updated successfully!');
+      setIsEditing(false);
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    reset();
+    setIsEditing(false);
+  };
 
   if (isLoading) {
     return (
@@ -49,28 +96,70 @@ const Profile = () => {
             {/* Account Information */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
-                  </label>
-                  <p className="text-gray-900 font-medium">{user?.name}</p>
+              
+              {isEditing ? (
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        {...register('name')}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      {errors.name && (
+                        <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        {...register('email')}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button type="submit" loading={isSaving}>
+                      Save Changes
+                    </Button>
+                    <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name
+                    </label>
+                    <p className="text-gray-900 font-medium">{user?.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <p className="text-gray-900 font-medium">{user?.email}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Account Created
+                    </label>
+                    <p className="text-gray-900 font-medium">
+                      {user?.created_at ? format(new Date(user.created_at), 'MMMM dd, yyyy') : 'N/A'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <p className="text-gray-900 font-medium">{user?.email}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Account Created
-                  </label>
-                  <p className="text-gray-900 font-medium">
-                    {user?.created_at ? format(new Date(user.created_at), 'MMMM dd, yyyy') : 'N/A'}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Email Verification Status */}
@@ -102,10 +191,14 @@ const Profile = () => {
                 <button
                   onClick={() => setIsEditing(!isEditing)}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                  disabled={isEditing}
                 >
-                  Edit Profile
+                  {isEditing ? 'Editing...' : 'Edit Profile'}
                 </button>
-                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                <button 
+                  onClick={() => setShowChangePassword(true)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
                   Change Password
                 </button>
               </div>
@@ -138,11 +231,24 @@ const Profile = () => {
           <p className="text-sm text-red-700 mb-4">
             Once you delete your account, there is no going back. Please be certain.
           </p>
-          <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+          <button 
+            onClick={() => setShowDeleteAccount(true)}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+          >
             Delete Account
           </button>
         </div>
       </div>
+
+      {/* Modals */}
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
+      <DeleteAccountModal
+        isOpen={showDeleteAccount}
+        onClose={() => setShowDeleteAccount(false)}
+      />
     </Layout>
   );
 };

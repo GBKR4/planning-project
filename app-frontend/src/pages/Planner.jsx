@@ -5,6 +5,7 @@ import { usePlan, useGeneratePlan, useMarkBlockDone, useMarkBlockMissed } from '
 import { useTasks } from '../hooks/useTasks';
 import { format } from 'date-fns';
 import { PRIORITY_COLORS } from '../utils/constants';
+import showToast from '../utils/toast';
 
 const Planner = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -18,20 +19,35 @@ const Planner = () => {
   const markBlockMissed = useMarkBlockMissed();
 
   const handleGeneratePlan = async () => {
-    await generatePlan.mutateAsync({
-      date: selectedDate,
-      workStart,
-      workEnd,
-    });
+    try {
+      await generatePlan.mutateAsync({
+        date: selectedDate,
+        workStart,
+        workEnd,
+      });
+      showToast.success('Plan generated successfully!');
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to generate plan');
+    }
   };
 
   const handleMarkDone = async (blockId) => {
-    await markBlockDone.mutateAsync(blockId);
+    try {
+      await markBlockDone.mutateAsync(blockId);
+      showToast.success('Block marked as done!');
+    } catch (error) {
+      showToast.error(error.response?.data?.message || 'Failed to mark block as done');
+    }
   };
 
   const handleMarkMissed = async (blockId) => {
     if (window.confirm('Mark this block as missed?')) {
-      await markBlockMissed.mutateAsync(blockId);
+      try {
+        await markBlockMissed.mutateAsync(blockId);
+        showToast.success('Block marked as missed');
+      } catch (error) {
+        showToast.error(error.response?.data?.message || 'Failed to mark block as missed');
+      }
     }
   };
 
