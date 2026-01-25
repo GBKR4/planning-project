@@ -28,19 +28,16 @@ export const logout = async () => {
 /**
  * Forgot password - send reset email
  */
-export const forgotPassword = async (email) => {
-  const response = await apiClient.post(API_ENDPOINTS.FORGOT_PASSWORD, { email });
+export const forgotPassword = async (data) => {
+  const response = await apiClient.post(API_ENDPOINTS.FORGOT_PASSWORD, data);
   return response.data;
 };
 
 /**
  * Reset password with token
  */
-export const resetPassword = async (token, newPassword) => {
-  const response = await apiClient.post(API_ENDPOINTS.RESET_PASSWORD, {
-    token,
-    newPassword
-  });
+export const resetPassword = async (data) => {
+  const response = await apiClient.post(API_ENDPOINTS.RESET_PASSWORD, data);
   return response.data;
 };
 
@@ -55,7 +52,7 @@ export const verifyEmail = async (token) => {
 /**
  * Resend verification email
  */
-export const resendVerification = async () => {
-  const response = await apiClient.post(API_ENDPOINTS.RESEND_VERIFICATION);
+export const resendVerification = async (data) => {
+  const response = await apiClient.post(API_ENDPOINTS.RESEND_VERIFICATION, data);
   return response.data;
 };
