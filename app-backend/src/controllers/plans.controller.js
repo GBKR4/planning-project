@@ -150,7 +150,7 @@ export const getPlan = asyncHandler(async (req, res) => {
   }
 
   const blocks = await pool.query(
-    `SELECT pb.*, t.title as task_title 
+    `SELECT pb.*, t.title as task_title, t.priority 
      FROM plan_blocks pb 
      LEFT JOIN tasks t ON pb.task_id = t.id 
      WHERE pb.plan_id = $1 

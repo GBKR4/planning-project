@@ -3,16 +3,24 @@ import { getUser, setUser, getAccessToken, setAccessToken, clearAuthData } from 
 import { mockUser } from '../api/mockData';
 import { USE_MOCK_DATA } from '../utils/useMockData';
 
+// Initialize from localStorage
+const storedUser = getUser();
+const storedToken = getAccessToken();
+
+console.log('Auth store initializing:', { hasUser: !!storedUser, hasToken: !!storedToken });
+
 const useAuthStore = create((set) => ({
-  user: USE_MOCK_DATA ? mockUser : getUser(),
-  token: USE_MOCK_DATA ? 'mock-token-123' : getAccessToken(),
-  isAuthenticated: USE_MOCK_DATA ? true : !!getAccessToken(),
+  user: USE_MOCK_DATA ? mockUser : storedUser,
+  token: USE_MOCK_DATA ? 'mock-token-123' : storedToken,
+  isAuthenticated: USE_MOCK_DATA ? true : !!(storedToken && storedUser),
   
   // Set user and token after login/register
   login: (user, token) => {
+    console.log('Setting auth - user:', user?.email, 'token:', !!token);
     setUser(user);
     setAccessToken(token);
     set({ user, token, isAuthenticated: true });
+    console.log('Auth set complete - isAuthenticated:', true);
   },
   
   // Clear auth data on logout

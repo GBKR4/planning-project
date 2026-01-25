@@ -22,7 +22,18 @@ const pool = new Pool(config);
 
 pool.on("error", (err) => {
   console.error("Database connection error:", err.message);
-  process.exit(1);
+  console.error("Please ensure PostgreSQL is running and credentials are correct");
+  // Don't exit - let the app handle errors
+});
+
+// Test connection on startup
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ Database connection failed:', err.message);
+    console.error('Server will run but database operations will fail');
+  } else {
+    console.log('✅ Database connected successfully');
+  }
 });
 
 export default pool;

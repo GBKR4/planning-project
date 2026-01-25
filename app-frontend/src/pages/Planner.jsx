@@ -3,16 +3,21 @@ import Layout from '../components/layout/Layout';
 import { PlannerPageSkeleton } from '../components/common/SkeletonLoader';
 import { usePlan, useGeneratePlan, useMarkBlockDone, useMarkBlockMissed } from '../hooks/usePlans';
 import { useTasks } from '../hooks/useTasks';
+import { useBusyBlocks } from '../hooks/useBusyBlocks';
 import { format } from 'date-fns';
-import { PRIORITY_COLORS } from '../utils/constants';
+import { PRIORITY_COLORS, DEFAULT_WORK_START, DEFAULT_WORK_END } from '../utils/constants';
+import CalendarView from '../components/planner/CalendarView';
+import { CalendarIcon, ListBulletIcon } from '@heroicons/react/24/outline';
 
 const Planner = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [workStart, setWorkStart] = useState('09:00');
-  const [workEnd, setWorkEnd] = useState('18:00');
+  const [workStart, setWorkStart] = useState(DEFAULT_WORK_START);
+  const [workEnd, setWorkEnd] = useState(DEFAULT_WORK_END);
+  const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'calendar'
 
   const { data: plan, isLoading: planLoading } = usePlan(selectedDate);
   const { data: tasks } = useTasks({ status: 'todo' });
+  const { data: busyBlocks } = useBusyBlocks(selectedDate);
   const generatePlan = useGeneratePlan();
   const markBlockDone = useMarkBlockDone();
   const markBlockMissed = useMarkBlockMissed();
@@ -39,13 +44,54 @@ const Planner = () => {
     task => !plan?.blocks?.some(block => block.task_id === task.id)
   ) || [];
 
+  const handleSelectEvent = (event) => {
+    if (event.resource.type === 'task') {
+      // Show block details or actions
+      console.log('Selected block:', event);
+    }
+  };
+
+  const handleNavigate = (date) => {
+    setSelectedDate(format(date, 'yyyy-MM-dd'));
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Daily Planner</h1>
-          <p className="mt-2 text-gray-600">Generate and manage your daily task schedule</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Daily Planner</h1>
+            <p className="mt-2 text-gray-600">Generate and manage your daily task schedule</p>
+          </div>
+          
+          {/* View Toggle */}
+          {plan && (
+            <div className="flex space-x-2 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('timeline')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                  viewMode === 'timeline'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ListBulletIcon className="h-5 w-5" />
+                <span>Timeline</span>
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                  viewMode === 'calendar'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <CalendarIcon className="h-5 w-5" />
+                <span>Calendar</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Plan Generator */}
@@ -101,9 +147,23 @@ const Planner = () => {
         {planLoading ? (
           <PlannerPageSkeleton />
         ) : plan ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Scheduled Blocks */}
-            <div className="lg:col-span-2 space-y-4">
+          <>
+            {/* Calendar View */}
+            {viewMode === 'calendar' && (
+              <CalendarView
+                blocks={plan.blocks || []}
+                busyBlocks={plan.busyBlocks || []}
+                onSelectEvent={handleSelectEvent}
+                selectedDate={selectedDate}
+                onNavigate={handleNavigate}
+              />
+            )}
+
+            {/* Timeline View */}
+            {viewMode === 'timeline' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Scheduled Blocks */}
+                <div className="lg:col-span-2 space-y-4">
               <h2 className="text-lg font-bold text-gray-900">
                 Schedule for {format(new Date(selectedDate), 'MMMM dd, yyyy')}
               </h2>
@@ -219,8 +279,10 @@ const Planner = () => {
                   <p className="text-gray-500 text-sm">All tasks scheduled!</p>
                 </div>
               )}
-            </div>
-          </div>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <p className="text-gray-500 text-lg">No plan generated yet</p>

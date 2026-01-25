@@ -36,8 +36,8 @@ function computeFreeSlots(plan, blocked, date, workStart, workEnd) {
   // Create proper ISO timestamps - date is YYYY-MM-DD, times are HH:MM or HH:MM:SS
   const startTime = workStart.substring(0, 5); // Get HH:MM
   const endTime = workEnd.substring(0, 5);
-  const dayStart = new Date(`${date}T${startTime}:00Z`);
-  const dayEnd = new Date(`${date}T${endTime}:00Z`);
+  const dayStart = new Date(`${date}T${startTime}:00`);
+  const dayEnd = new Date(`${date}T${endTime}:00`);
 
   const mergedIntervels = mergeIntervals(blocked);
 
@@ -46,22 +46,21 @@ function computeFreeSlots(plan, blocked, date, workStart, workEnd) {
 
 function getOrderedTasks(tasks) {
   return [...tasks].sort((a, b) => {
-    const da = new Date(a.deadline_at).getTime();
-    const db = new Date(b.deadline_at).getTime();
+    // Step 1: Sort by deadline (null deadlines go last)
+    const deadlineA = a.deadline_at ? new Date(a.deadline_at).getTime() : Infinity;
+    const deadlineB = b.deadline_at ? new Date(b.deadline_at).getTime() : Infinity;
 
-    //at first deadline based
-    if (da !== db) {
-      return da - db;
+    if (deadlineA !== deadlineB) {
+      return deadlineA - deadlineB; // earlier deadline first
     }
 
-    //next based on high priority
+    // Step 2: Sort by priority (higher priority first)
     if (a.priority !== b.priority) {
-      return b.priority - a.priority;
+      return b.priority - a.priority; // 5 comes before 3
     }
 
-    //thenn based on estimated_minutes
-
-    return (a.estimated_minutes - b.estimated_minutes);
+    // Step 3: Sort by duration (larger tasks first)
+    return b.estimated_minutes - a.estimated_minutes; // 90 min comes before 30 min
   })
 }
 
@@ -71,8 +70,8 @@ async function assignSlots(userId, date, workStart, workEnd) {
   // Create ISO formatted timestamps - ensure workStart/workEnd are in HH:MM format
   const startTime = workStart.substring(0, 5);
   const endTime = workEnd.substring(0, 5);
-  const dayStart = new Date(`${date}T${startTime}:00Z`);
-  const dayEnd = new Date(`${date}T${endTime}:00Z`);
+  const dayStart = new Date(`${date}T${startTime}:00`);
+  const dayEnd = new Date(`${date}T${endTime}:00`);
 
   const busyBlocks = await getBusyBlocks(userId, dayStart, dayEnd);
 

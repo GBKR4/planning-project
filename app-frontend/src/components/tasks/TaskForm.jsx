@@ -13,7 +13,13 @@ const TaskForm = ({ onSubmit, initialData, isLoading }) => {
     reset,
   } = useForm({
     resolver: zodResolver(taskSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      title: initialData.title || '',
+      notes: initialData.notes || '',
+      estimatedMinutes: initialData.estimated_minutes || 30,
+      deadlineAt: initialData.deadline_at || '',
+      priority: initialData.priority || 3,
+    } : {
       title: '',
       notes: '',
       estimatedMinutes: 30,
@@ -24,7 +30,13 @@ const TaskForm = ({ onSubmit, initialData, isLoading }) => {
 
   // Reset form when initialData changes
   useEffect(() => {
-    reset(initialData || {
+    reset(initialData ? {
+      title: initialData.title || '',
+      notes: initialData.notes || '',
+      estimatedMinutes: initialData.estimated_minutes || 30,
+      deadlineAt: initialData.deadline_at || '',
+      priority: initialData.priority || 3,
+    } : {
       title: '',
       notes: '',
       estimatedMinutes: 30,

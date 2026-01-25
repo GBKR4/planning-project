@@ -27,10 +27,13 @@ A full-stack web application that helps students plan their day intelligently by
   - Bcrypt password hashing
 
 - 📊 **Real-time Schedule Management**
+  - Dual view modes: Timeline and Calendar
+  - Interactive calendar with day/week/month views
+  - Color-coded blocks by priority and status
   - Mark blocks as done/missed
   - Task completion tracking
   - Automatic task rescheduling
-  - Calendar visualization
+  - Visual schedule organized by date and time
 
 - 🛡️ **Security Features**
   - JWT authentication
@@ -45,11 +48,13 @@ A full-stack web application that helps students plan their day intelligently by
 ### Frontend
 - **React 18.3** - UI framework
 - **React Router 7** - Navigation
+- **React Big Calendar** - Calendar visualization
 - **TailwindCSS 4** - Styling
 - **Zustand** - State management
 - **React Query** - Data fetching
 - **React Hook Form** - Form handling
 - **Axios** - HTTP client
+- **date-fns** - Date formatting
 - **Vite** - Build tool
 
 ### Backend
@@ -521,6 +526,8 @@ planning-project/
 │   │   │   ├── blocks/
 │   │   │   ├── common/
 │   │   │   ├── layout/
+│   │   │   ├── planner/
+│   │   │   │   └── CalendarView.jsx
 │   │   │   ├── profile/
 │   │   │   └── tasks/
 │   │   ├── hooks/             # Custom hooks
@@ -532,6 +539,8 @@ planning-project/
 │   │   │   ├── Planner.jsx
 │   │   │   └── Profile.jsx
 │   │   ├── store/             # State management
+│   │   ├── styles/            # Custom styles
+│   │   │   └── calendar.css
 │   │   ├── utils/             # Utilities
 │   │   ├── App.jsx
 │   │   └── main.jsx
@@ -725,10 +734,12 @@ Your Name - [your-email@example.com](mailto:your-email@example.com)
 
 ## 🙏 Acknowledgments
 
-- React Big Calendar for calendar visualization
+- React Big Calendar for interactive calendar visualization
+- date-fns for date formatting and manipulation
 - TailwindCSS for beautiful UI components
 - PostgreSQL for reliable data storage
 - Express.js community for excellent middleware
+- Heroicons for UI icons
 
 ## 📞 Support
 

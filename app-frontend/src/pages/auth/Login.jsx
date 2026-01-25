@@ -30,25 +30,43 @@ const Login = () => {
     try {
       const response = await loginApi(data);
       
-      console.log('Login response:', response);
+      console.log('=== LOGIN FLOW START ===');
+      console.log('1. Login API response:', response);
+      
+      // Ensure we have the required data
+      if (!response.user || !response.accessToken) {
+        throw new Error('Invalid login response - missing user or token');
+      }
+      
+      console.log('2. Calling setAuth with:', { email: response.user.email, hasToken: !!response.accessToken });
       
       // Store user and token (backend returns accessToken)
       setAuth(response.user, response.accessToken);
       
-      console.log('Auth state updated');
+      // Verify localStorage was updated
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('accessToken');
+      console.log('3. LocalStorage check:', { 
+        userStored: !!storedUser, 
+        tokenStored: !!storedToken,
+        userEmail: storedUser ? JSON.parse(storedUser).email : 'none'
+      });
       
-      toast.success('Login successful!');
+      toast.success('Login successful! Redirecting...');
       
-      // Small delay to ensure state is updated
+      console.log('4. About to redirect to /dashboard');
+      
+      // Use window.location for hard navigation to ensure fresh state load
       setTimeout(() => {
-        navigate('/dashboard', { replace: true });
+        console.log('5. Redirecting with window.location...');
+        window.location.href = '/dashboard';
       }, 100);
+      
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed. Please try again.';
+      setIsLoading(false);
+      const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       toast.error(message);
       console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

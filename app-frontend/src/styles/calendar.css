@@ -1,0 +1,341 @@
+/* Custom styles for React Big Calendar - Modern Design */
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Calendar container */
+.calendar-container {
+  animation: slideIn 0.4s ease-out;
+}
+
+.rbc-calendar {
+  font-family: inherit;
+  background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
+  border-radius: 1rem;
+}
+
+/* Toolbar styling - Modern gradient header */
+.rbc-toolbar {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.rbc-toolbar button {
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.875rem;
+}
+
+.rbc-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rbc-toolbar button.rbc-active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
+
+/* Time gutter */
+.rbc-time-gutter {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+/* Event styling - Modern cards */
+.rbc-event {
+  border-radius: 0.625rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.813rem;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  animation: slideIn 0.3s ease-out;
+}
+
+.rbc-event::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  transition: width 0.3s;
+}
+
+.rbc-event:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px) scale(1.02);
+  z-index: 10;
+}
+
+.rbc-event:hover::before {
+  width: 100%;
+  opacity: 0.1;
+}
+
+.rbc-event:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.rbc-event-label {
+  display: none;
+}
+
+/* Today highlighting - Soft glow */
+.rbc-today {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
+  box-shadow: inset 0 0 0 2px #fbbf24;
+  position: relative;
+}
+
+.rbc-today::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.rbc-current-time-indicator {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  height: 3px;
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3);
+  position: relative;
+}
+
+.rbc-current-time-indicator::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: -4.5px;
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.rbc-header:hover {
+  background: linear-gradient(to bottom, #f3f4f6 0%, #f9fafb 100%);
+  color: #667eea;
+  transition: all 0.2s;
+}
+
+/* Header - Gradient style */
+.rbc-header {
+  padding: 1rem 0.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.rbc-header + .rbc-header {
+  border-left: 1px solid #e5e7eb;
+}
+
+/* Time slots - Subtle lines */
+.rbc-time-slot {
+  border-top: 1px solid #f3f4f6;
+  min-height: 40px;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid #f9fafb;
+}
+
+.rbc-timeslot-group {
+  border-left: 1px solid #e5e7eb;
+}
+
+/* Month view - Card style */
+.rbc-month-view {
+  border: 2px solid #e5e7eb;
+  border-radius: 0 0 1rem 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.rbc-month-row {
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Date cell styling */
+.rbc-date-cell {
+  padding: 0.5rem;
+  font-weight: 600;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.rbc-date-cell:hover {
+  background: rgba(102, 126, 234, 0.05);
+  color: #667eea;
+  cursor: pointer;
+}
+
+.rbc-now .rbc-button-link {
+  color: #f59e0b;
+  font-weight: 800;
+  font-size: 1.1em;
+}
+
+.rbc-off-range {
+  color: #d1d5db;
+}
+
+.rbc-off-range-bg {
+  background: #fafafa;
+}
+
+/* Selected event - Glow effect */
+.rbc-event.rbc-selected {
+  background-color: inherit;
+  outline: 3px solid #4f46e5;
+  outline-offset: 2px;
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+}
+
+/* Agenda view */
+.rbc-agenda-view {
+  border: 2px solid #e5e7eb;
+  border-radius: 0 0 1rem 1rem;
+  overflow: hidden;
+}
+
+.rbc-agenda-table {
+  border-spacing: 0;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  padding: 1rem;
+  font-weight: 700;
+  color: #374151;
+  background: #f9fafb;
+}
+
+.rbc-agenda-event-cell {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Popup - Glass morphism */
+.rbc-overlay {
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  max-width: 350px;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.rbc-overlay-header {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+  font-weight: 700;
+  border-radius: 1rem 1rem 0 0;
+  font-size: 1rem;
+}
+
+/* Week view timeslots */
+.rbc-time-content {
+  border-top: 2px solid #e5e7eb;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.rbc-time-column {
+  background: white;
+}
+
+/* Day view */
+.rbc-day-slot .rbc-events-container {
+  margin-right: 0;
+}
+
+/* All day row */
+.rbc-allday-cell {
+  background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
+  border-bottom: 2px solid #e5e7eb;
+  font-weight: 600;
+  padding: 0.5rem;
+}
+
+/* Show more link */
+.rbc-show-more {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin: 0.25rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.rbc-show-more:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.rbc-time-column {
+  min-height: 100%;
+  background: white;
+}
