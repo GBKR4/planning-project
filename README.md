@@ -736,4 +736,4 @@ For support, email your-email@example.com or open an issue in the repository.
 
 ---
 
-**Built with ❤️ by [Your Name]**
+**Built with ❤️ by [GBKR]**
