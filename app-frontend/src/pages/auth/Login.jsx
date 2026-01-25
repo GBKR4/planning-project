@@ -32,15 +32,17 @@ const Login = () => {
       
       console.log('Login response:', response);
       
-      // Store user and token
-      setAuth(response.user, response.token);
+      // Store user and token (backend returns accessToken)
+      setAuth(response.user, response.accessToken);
       
-      console.log('Auth state updated, navigating to dashboard...');
+      console.log('Auth state updated');
       
       toast.success('Login successful!');
       
-      // Force redirect using window.location as fallback
-      window.location.href = '/dashboard';
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed. Please try again.';
       toast.error(message);

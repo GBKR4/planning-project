@@ -213,11 +213,11 @@ export const markBlockDone = asyncHandler(async (req, res) => {
 export const markBlockMissed = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const blockId = req.params.blockId;
-  const { reschedule } = req.body;
+  const { reschedule = true } = req.body;
 
   // Verify block belongs to user's plan
   const blockCheck = await pool.query(
-    `SELECT pb.*, p.user_id, p.plan_date FROM plan_blocks pb 
+    `SELECT pb.*, p.user_id, p.plan_date::text as plan_date, p.work_end FROM plan_blocks pb 
      JOIN plans p ON pb.plan_id = p.id 
      WHERE pb.id = $1`,
     [blockId]
@@ -232,34 +232,59 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
   }
 
   const block = blockCheck.rows[0];
+  const planDate = block.plan_date; // Already in YYYY-MM-DD format from ::text cast
 
-  // Mark block as missed
-  await pool.query(
-    "UPDATE plan_blocks SET status = 'missed' WHERE id = $1",
-    [blockId]
-  );
-
-  let updatedBlocks = [];
-
-  // Reschedule remaining day if requested
   if (reschedule) {
+    // Use the regeneratePlan function to automatically reschedule
     const { regeneratePlan } = await import("../services/plannerEngine.js");
-    await regeneratePlan(userId, block.plan_date, blockId);
+    await regeneratePlan(userId, planDate, blockId);
 
-    // Fetch updated blocks
-    const result = await pool.query(
+    // Get the newly scheduled blocks
+    const newBlocks = await pool.query(
       `SELECT pb.*, t.title as task_title 
        FROM plan_blocks pb 
        LEFT JOIN tasks t ON pb.task_id = t.id 
-       WHERE pb.plan_id = $1 AND pb.status = 'scheduled' AND pb.start_at > NOW() 
+       WHERE pb.plan_id = $1 
+       AND pb.status = 'scheduled'
+       AND pb.start_at > $2
        ORDER BY pb.start_at`,
-      [block.plan_id]
+      [block.plan_id, new Date()]
     );
-    updatedBlocks = result.rows;
-  }
 
-  res.json({
-    message: reschedule ? "Block marked as missed and remaining blocks rescheduled" : "Block marked as missed",
-    updatedBlocks
-  });
+    res.json({
+      message: "Block marked as missed and remaining day rescheduled",
+      taskId: block.task_id,
+      rescheduled: true,
+      newBlocks: newBlocks.rows
+    });
+  } else {
+    // Just mark as missed without rescheduling
+    await pool.query(
+      "UPDATE plan_blocks SET status = 'missed' WHERE id = $1",
+      [blockId]
+    );
+
+    // If block has a task, ensure the task remains as 'todo' so it can be rescheduled
+    if (block.task_id) {
+      await pool.query(
+        "UPDATE tasks SET status = 'todo' WHERE id = $1",
+        [block.task_id]
+      );
+    }
+
+    // Delete all remaining scheduled blocks after this missed block for today
+    await pool.query(
+      `DELETE FROM plan_blocks 
+       WHERE plan_id = $1 
+       AND status = 'scheduled' 
+       AND start_at > $2`,
+      [block.plan_id, block.end_at]
+    );
+
+    res.json({
+      message: "Block marked as missed. Remaining blocks deleted.",
+      taskId: block.task_id,
+      rescheduled: false
+    });
+  }
 });

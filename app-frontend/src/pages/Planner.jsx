@@ -30,7 +30,7 @@ const Planner = () => {
   };
 
   const handleMarkMissed = async (blockId) => {
-    if (window.confirm('Mark this block as missed?')) {
+    if (window.confirm('Mark this block as missed? The task will be rescheduled for future plans.')) {
       await markBlockMissed.mutateAsync(blockId);
     }
   };
@@ -153,7 +153,7 @@ const Planner = () => {
                           </div>
 
                           {/* Action Buttons */}
-                          {block.status === 'pending' && (
+                          {block.status === 'scheduled' && (
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => handleMarkDone(block.id)}

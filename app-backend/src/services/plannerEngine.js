@@ -33,8 +33,11 @@ async function getPlanBlocks(planId, dayStart, dayEnd) {
 }
 
 function computeFreeSlots(plan, blocked, date, workStart, workEnd) {
-  const dayStart = new Date(`${date} ${workStart}`);
-  const dayEnd = new Date(`${date} ${workEnd}`);
+  // Create proper ISO timestamps - date is YYYY-MM-DD, times are HH:MM or HH:MM:SS
+  const startTime = workStart.substring(0, 5); // Get HH:MM
+  const endTime = workEnd.substring(0, 5);
+  const dayStart = new Date(`${date}T${startTime}:00Z`);
+  const dayEnd = new Date(`${date}T${endTime}:00Z`);
 
   const mergedIntervels = mergeIntervals(blocked);
 
@@ -65,9 +68,11 @@ function getOrderedTasks(tasks) {
 async function assignSlots(userId, date, workStart, workEnd) {
   const plan = await getPlan(userId, date);
 
-  const dayStart = `${date} ${workStart}`;
-
-  const dayEnd = `${date} ${workEnd}`;
+  // Create ISO formatted timestamps - ensure workStart/workEnd are in HH:MM format
+  const startTime = workStart.substring(0, 5);
+  const endTime = workEnd.substring(0, 5);
+  const dayStart = new Date(`${date}T${startTime}:00Z`);
+  const dayEnd = new Date(`${date}T${endTime}:00Z`);
 
   const busyBlocks = await getBusyBlocks(userId, dayStart, dayEnd);
 
@@ -154,6 +159,19 @@ async function regeneratePlan(userId, date, missedBlockId) {
       [missedBlockId]
     );
 
+    // Get the missed block's task to keep it as todo
+    const missedBlock = await pool.query(
+      `SELECT task_id FROM plan_blocks WHERE id = $1`,
+      [missedBlockId]
+    );
+    
+    if (missedBlock.rows[0]?.task_id) {
+      await pool.query(
+        `UPDATE tasks SET status = 'todo' WHERE id = $1`,
+        [missedBlock.rows[0].task_id]
+      );
+    }
+
     // delete future scheduled blocks
     await pool.query(
       `DELETE FROM plan_blocks
@@ -163,21 +181,31 @@ async function regeneratePlan(userId, date, missedBlockId) {
       [plan.id, now]
     );
 
-    // reschedule remaining day
+    // reschedule remaining day from current time
+    const currentTime = now.toISOString().slice(11, 16); // HH:MM format
     const assignedSlots = await assignSlots(
       userId,
       date,
-      now.toISOString().slice(11, 16),
+      currentTime,
       plan.work_end
     );
 
-    // insert new slots
+    // Get tasks for reason generation
+    const { rows: tasks } = await pool.query(
+      `SELECT id, title, deadline_at, priority FROM tasks WHERE user_id = $1`,
+      [userId]
+    );
+
+    // insert new slots with reason
     for (const block of assignedSlots) {
+      const task = tasks.find(t => t.id === block.task_id);
+      const reason = `Rescheduled: ${task?.deadline_at ? 'Deadline ' + new Date(task.deadline_at).toLocaleDateString() : 'Priority ' + task?.priority}`;
+      
       await pool.query(
         `INSERT INTO plan_blocks
-         (plan_id, task_id, block_type, start_at, end_at)
-         VALUES ($1, $2, 'task', $3, $4)`,
-        [plan.id, block.task_id, block.start, block.end]
+         (plan_id, task_id, block_type, start_at, end_at, reason)
+         VALUES ($1, $2, 'task', $3, $4, $5)`,
+        [plan.id, block.task_id, block.start, block.end, reason]
       );
     }
 

@@ -62,7 +62,7 @@ export const useMarkBlockDone = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ blockId, markTaskDone }) => markBlockDone(blockId, markTaskDone),
+    mutationFn: (blockId) => markBlockDone(blockId, true),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_KEYS.all });
       queryClient.invalidateQueries({ queryKey: TASK_KEYS.lists() });
@@ -82,16 +82,15 @@ export const useMarkBlockMissed = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ blockId, reschedule }) => markBlockMissed(blockId, reschedule),
+    mutationFn: (blockId) => markBlockMissed(blockId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: PLAN_KEYS.all });
       queryClient.invalidateQueries({ queryKey: TASK_KEYS.lists() });
       
-      if (data.blocks && data.blocks.length > 0) {
-        toast.success(`Block marked as missed. ${data.blocks.length} remaining blocks rescheduled.`);
-      } else {
-        toast.success('Block marked as missed.');
-      }
+      toast.success(
+        data.message || 'Block marked as missed. Task will be rescheduled in future plans.',
+        { duration: 4000 }
+      );
     },
     onError: (error) => {
       const message = error.response?.data?.message || 'Failed to mark block as missed';

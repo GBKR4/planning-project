@@ -52,13 +52,10 @@ export const markBlockDone = async (blockId, markTaskDone = true) => {
 };
 
 /**
- * Mark a plan block as missed and optionally reschedule
+ * Mark a plan block as missed and automatically reschedule the task
  * @param {number} blockId
- * @param {boolean} reschedule - Whether to reschedule remaining blocks
  */
-export const markBlockMissed = async (blockId, reschedule = true) => {
-  const response = await apiClient.post(API_ENDPOINTS.BLOCK_MISSED(blockId), {
-    reschedule
-  });
+export const markBlockMissed = async (blockId) => {
+  const response = await apiClient.post(API_ENDPOINTS.BLOCK_MISSED(blockId));
   return response.data;
 };

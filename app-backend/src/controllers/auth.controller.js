@@ -112,7 +112,7 @@ export const Login = asyncHandler(async (req, res) => {
             email: user.email,
             email_verified: user.email_verified
         },
-        token 
+        accessToken: token // Changed from 'token' to 'accessToken' to match frontend expectation
     });
 });
 
