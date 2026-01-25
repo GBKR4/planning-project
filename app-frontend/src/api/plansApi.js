@@ -56,6 +56,8 @@ export const markBlockDone = async (blockId, markTaskDone = true) => {
  * @param {number} blockId
  */
 export const markBlockMissed = async (blockId) => {
-  const response = await apiClient.post(API_ENDPOINTS.BLOCK_MISSED(blockId));
+  const response = await apiClient.post(API_ENDPOINTS.BLOCK_MISSED(blockId), {
+    reschedule: true
+  });
   return response.data;
 };

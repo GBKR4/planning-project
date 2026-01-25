@@ -215,6 +215,8 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
   const blockId = req.params.blockId;
   const { reschedule = true } = req.body;
 
+  console.log('markBlockMissed called:', { userId, blockId, reschedule });
+
   // Verify block belongs to user's plan
   const blockCheck = await pool.query(
     `SELECT pb.*, p.user_id, p.plan_date::text as plan_date, p.work_end FROM plan_blocks pb 
@@ -222,6 +224,8 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
      WHERE pb.id = $1`,
     [blockId]
   );
+
+  console.log('Block check result:', { rowCount: blockCheck.rowCount, block: blockCheck.rows[0] });
 
   if (blockCheck.rowCount === 0) {
     return res.status(404).json({ message: "Block not found" });
@@ -234,10 +238,18 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
   const block = blockCheck.rows[0];
   const planDate = block.plan_date; // Already in YYYY-MM-DD format from ::text cast
 
+  console.log('Attempting to reschedule:', { planDate, userId });
+
   if (reschedule) {
-    // Use the regeneratePlan function to automatically reschedule
-    const { regeneratePlan } = await import("../services/plannerEngine.js");
-    await regeneratePlan(userId, planDate, blockId);
+    try {
+      // Use the regeneratePlan function to automatically reschedule
+      const { regeneratePlan } = await import("../services/plannerEngine.js");
+      await regeneratePlan(userId, planDate, blockId);
+      console.log('Reschedule completed successfully');
+    } catch (error) {
+      console.error('Error in regeneratePlan:', error);
+      throw error;
+    }
 
     // Get the newly scheduled blocks
     const newBlocks = await pool.query(

@@ -51,6 +51,17 @@ const Planner = () => {
     }
   };
 
+  // Helper function to check if block time has passed
+  const isBlockPast = (endTime) => {
+    return new Date(endTime) < new Date();
+  };
+
+  // Helper function to check if block is currently active
+  const isBlockActive = (startTime, endTime) => {
+    const now = new Date();
+    return new Date(startTime) <= now && now <= new Date(endTime);
+  };
+
   const handleNavigate = (date) => {
     setSelectedDate(format(date, 'yyyy-MM-dd'));
   };
@@ -171,14 +182,23 @@ const Planner = () => {
                 <div className="space-y-3">
                   {plan.blocks
                     .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
-                    .map((block) => (
+                    .map((block) => {
+                      const isPast = isBlockPast(block.end_at);
+                      const isActive = isBlockActive(block.start_at, block.end_at);
+                      const shouldPrompt = block.status === 'scheduled' && isPast;
+                      
+                      return (
                       <div
                         key={block.id}
-                        className={`bg-white rounded-xl shadow-sm border-l-4 p-5 ${
+                        className={`bg-white rounded-xl shadow-sm border-l-4 p-5 transition-all ${
                           block.status === 'done'
                             ? 'border-green-500 bg-green-50'
                             : block.status === 'missed'
                             ? 'border-red-500 bg-red-50'
+                            : isActive
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                            : shouldPrompt
+                            ? 'border-yellow-500 bg-yellow-50'
                             : 'border-indigo-500'
                         }`}
                       >
@@ -201,6 +221,16 @@ const Planner = () => {
                                   ✗ Missed
                                 </span>
                               )}
+                              {isActive && block.status === 'scheduled' && (
+                                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full animate-pulse">
+                                  ⏳ In Progress
+                                </span>
+                              )}
+                              {shouldPrompt && (
+                                <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                                  ⚠️ Time Elapsed
+                                </span>
+                              )}
                             </div>
                             <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                               <span>
@@ -214,24 +244,36 @@ const Planner = () => {
 
                           {/* Action Buttons */}
                           {block.status === 'scheduled' && (
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleMarkDone(block.id)}
-                                className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-                              >
-                                ✓ Done
-                              </button>
-                              <button
-                                onClick={() => handleMarkMissed(block.id)}
-                                className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
-                              >
-                                ✗ Missed
-                              </button>
+                            <div className="flex flex-col space-y-2">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleMarkDone(block.id)}
+                                  className={`px-3 py-1 text-white text-sm rounded-lg transition-colors ${
+                                    shouldPrompt 
+                                      ? 'bg-green-600 hover:bg-green-700 ring-2 ring-green-300 animate-pulse' 
+                                      : 'bg-green-600 hover:bg-green-700'
+                                  }`}
+                                >
+                                  ✓ Done
+                                </button>
+                                <button
+                                  onClick={() => handleMarkMissed(block.id)}
+                                  className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                                >
+                                  ✗ Missed
+                                </button>
+                              </div>
+                              {shouldPrompt && (
+                                <span className="text-xs text-yellow-700">
+                                  Mark status to update
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
                       </div>
-                    ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">

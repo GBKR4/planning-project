@@ -79,7 +79,7 @@ async function assignSlots(userId, date, workStart, workEnd) {
 
   const blocked = [...busyBlocks, ...planBlocks];
 
-  let freeSlots = computeFreeSlots(plan, blocked, date,workStart,workEnd);
+  let freeSlots = computeFreeSlots(plan, blocked, date, workStart, workEnd);
 
 
   const { rows: tasks } = await pool.query(`SELECT id, title, estimated_minutes, deadline_at, priority FROM tasks WHERE user_id = $1 AND status = 'todo' `, [userId]);
@@ -181,7 +181,7 @@ async function regeneratePlan(userId, date, missedBlockId) {
     );
 
     // reschedule remaining day from current time
-    const currentTime = now.toISOString().slice(11, 16); // HH:MM format
+    const currentTime = now.toTimeString().slice(0, 5); // HH:MM format in local time
     const assignedSlots = await assignSlots(
       userId,
       date,
