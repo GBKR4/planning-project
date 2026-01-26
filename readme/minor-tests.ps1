@@ -139,7 +139,7 @@ Test "Create task with negative duration" {
 Test "Create task with invalid priority" {
     $body = @{title="Test"; estimated_minutes=30; priority=10} | ConvertTo-Json
     try {
-        $result = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' -Method POST -Headers $script:headers -Body $body
+        $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' -Method POST -Headers $script:headers -Body $body
         # Either rejects or clamps to valid range
         return "Handles invalid priority"
     } catch {
@@ -218,7 +218,7 @@ Test "Update task priority" {
 Test "Update task completion status" {
     if ($script:quickTaskId) {
         $body = @{is_completed=$true} | ConvertTo-Json
-        $result = Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/$($script:quickTaskId)" -Method PATCH -Headers $script:headers -Body $body
+        $null = Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/$($script:quickTaskId)" -Method PATCH -Headers $script:headers -Body $body
         return "Task completion updated"
     }
     throw "No task to update"
@@ -259,7 +259,7 @@ Test "Generate plan for past date" {
     $pastDate = (Get-Date).AddDays(-1).ToString('yyyy-MM-dd')
     $body = @{date=$pastDate; workStart="09:00"; workEnd="22:00"} | ConvertTo-Json
     try {
-        $result = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' -Method POST -Headers $script:headers -Body $body
+        $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' -Method POST -Headers $script:headers -Body $body
         return "Allows plan generation for past date"
     } catch {
         return "Validates date constraints"
@@ -269,7 +269,7 @@ Test "Generate plan for past date" {
 Test "Generate plan with invalid time range" {
     $body = @{date="2026-01-28"; workStart="22:00"; workEnd="09:00"} | ConvertTo-Json
     try {
-        $result = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' -Method POST -Headers $script:headers -Body $body
+        $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' -Method POST -Headers $script:headers -Body $body
         throw "Should validate work time range"
     } catch {
         if ($_.Exception.Message -like "*400*" -or $_.Exception.Message -like "*invalid*") {
@@ -283,7 +283,7 @@ Test "Generate plan with invalid time range" {
 Test "Generate plan with very short work window" {
     $body = @{date="2026-01-29"; workStart="09:00"; workEnd="09:30"} | ConvertTo-Json
     try {
-        $result = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' -Method POST -Headers $script:headers -Body $body
+        $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' -Method POST -Headers $script:headers -Body $body
         return "Handles short work window (30 min)"
     } catch {
         return "May reject short work window"

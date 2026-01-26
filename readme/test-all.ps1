@@ -28,12 +28,12 @@ function Test-Step {
 Write-Host "`n═══ 1. SERVER STATUS ═══`n" -ForegroundColor Cyan
 
 Test-Step "Backend Server (port 5000)" {
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/users' -Method GET -TimeoutSec 5
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/users' -Method GET -TimeoutSec 5
     return "Running"
 }
 
 Test-Step "Frontend Server (port 3002)" {
-    $response = Invoke-WebRequest -Uri 'http://localhost:3002' -Method GET -TimeoutSec 5
+    $null = Invoke-WebRequest -Uri 'http://localhost:3002' -Method GET -TimeoutSec 5
     return "Running"
 }
 
@@ -46,14 +46,14 @@ $global:TestUser = @{
     password = "SecurePass123!"
 }
 
-$regResult = Test-Step "User Registration" {
+$null = Test-Step "User Registration" {
     $body = @{
         username = $global:TestUser.username
         email = $global:TestUser.email
         password = $global:TestUser.password
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/auth/register' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/auth/register' `
                                   -Method POST `
                                   -Body $body `
                                   -ContentType 'application/json'
@@ -63,22 +63,22 @@ $regResult = Test-Step "User Registration" {
     return "User ID: $($response.user.id)"
 }
 
-$loginResult = Test-Step "User Login" {
+$null = Test-Step "User Login" {
     $body = @{
         email = $global:TestUser.email
         password = $global:TestUser.password
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/auth/login' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/auth/login' `
                                   -Method POST `
                                   -Body $body `
                                   -ContentType 'application/json'
     return "Token length: $($response.token.Length)"
 }
 
-$jwtResult = Test-Step "JWT Token Verification" {
+$null = Test-Step "JWT Token Verification" {
     $headers = @{ 'Authorization' = "Bearer $global:testToken" }
-    $response = Invoke-RestMethod -Uri "http://localhost:5000/api/users/$global:testUserId" `
+    $null = Invoke-RestMethod -Uri "http://localhost:5000/api/users/$global:testUserId" `
                                   -Headers $headers
     return "User: $($response.username)"
 }
@@ -90,7 +90,7 @@ $headers = @{
     'Content-Type' = 'application/json'
 }
 
-$createTask1 = Test-Step "Create Task 1 (P5, 90min, deadline)" {
+$null = Test-Step "Create Task 1 (P5, 90min, deadline)" {
     $body = @{
         title = "High Priority Task"
         description = "Important task"
@@ -99,7 +99,7 @@ $createTask1 = Test-Step "Create Task 1 (P5, 90min, deadline)" {
         deadline_at = "2026-01-27T18:00:00"
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' `
                                   -Method POST `
                                   -Headers $headers `
                                   -Body $body
@@ -107,7 +107,7 @@ $createTask1 = Test-Step "Create Task 1 (P5, 90min, deadline)" {
     return "ID: $($response.id), Priority: $($response.priority)"
 }
 
-$createTask2 = Test-Step "Create Task 2 (P3, 60min, deadline)" {
+$null = Test-Step "Create Task 2 (P3, 60min, deadline)" {
     $body = @{
         title = "Medium Priority Task"
         description = "Medium task"
@@ -116,7 +116,7 @@ $createTask2 = Test-Step "Create Task 2 (P3, 60min, deadline)" {
         deadline_at = "2026-01-27T20:00:00"
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' `
                                   -Method POST `
                                   -Headers $headers `
                                   -Body $body
@@ -124,7 +124,7 @@ $createTask2 = Test-Step "Create Task 2 (P3, 60min, deadline)" {
     return "ID: $($response.id), Priority: $($response.priority)"
 }
 
-$createTask3 = Test-Step "Create Task 3 (P1, 30min, no deadline)" {
+$null = Test-Step "Create Task 3 (P1, 30min, no deadline)" {
     $body = @{
         title = "Low Priority Task"
         description = "Low priority"
@@ -132,7 +132,7 @@ $createTask3 = Test-Step "Create Task 3 (P1, 30min, no deadline)" {
         priority = 1
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' `
                                   -Method POST `
                                   -Headers $headers `
                                   -Body $body
@@ -140,14 +140,14 @@ $createTask3 = Test-Step "Create Task 3 (P1, 30min, no deadline)" {
     return "ID: $($response.id), Priority: $($response.priority)"
 }
 
-$readTasks = Test-Step "Read All Tasks" {
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' -Headers $headers
+$null = Test-Step "Read All Tasks" {
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/tasks' -Headers $headers
     return "Count: $($response.Count)"
 }
 
-$updateTask = Test-Step "Update Task Priority" {
+$null = Test-Step "Update Task Priority" {
     $body = @{ priority = 2 } | ConvertTo-Json
-    $response = Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/$global:task3Id" `
+    $null = Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/$global:task3Id" `
                                   -Method PATCH `
                                   -Headers $headers `
                                   -Body $body
@@ -156,14 +156,14 @@ $updateTask = Test-Step "Update Task Priority" {
 
 Write-Host "`n═══ 4. BUSY BLOCKS ═══`n" -ForegroundColor Cyan
 
-$createBlock = Test-Step "Create Busy Block" {
+$null = Test-Step "Create Busy Block" {
     $body = @{
         title = "Lunch Break"
         start_at = "2026-01-27T12:00:00"
         end_at = "2026-01-27T13:00:00"
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/busyblocks' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/busyblocks' `
                                   -Method POST `
                                   -Headers $headers `
                                   -Body $body
@@ -171,21 +171,21 @@ $createBlock = Test-Step "Create Busy Block" {
     return "ID: $($response.id)"
 }
 
-$readBlocks = Test-Step "Read Busy Blocks" {
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/busyblocks' -Headers $headers
+$null = Test-Step "Read Busy Blocks" {
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/busyblocks' -Headers $headers
     return "Count: $($response.Count)"
 }
 
 Write-Host "`n═══ 5. PLAN GENERATION ═══`n" -ForegroundColor Cyan
 
-$generatePlan = Test-Step "Generate Daily Plan" {
+$null = Test-Step "Generate Daily Plan" {
     $body = @{
         date = "2026-01-27"
         workStart = "09:00"
         workEnd = "22:00"
     } | ConvertTo-Json
     
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' `
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans/generate' `
                                   -Method POST `
                                   -Headers $headers `
                                   -Body $body
@@ -195,7 +195,7 @@ $generatePlan = Test-Step "Generate Daily Plan" {
     return "Blocks: $($response.blocks.Count), Plan ID: $($response.plan.id)"
 }
 
-$verifyScheduling = Test-Step "Verify Task Scheduling Order" {
+$null = Test-Step "Verify Task Scheduling Order" {
     $blocks = $global:planBlocks | Sort-Object { [DateTime]$_.start_at }
     $order = $blocks | ForEach-Object { "P$($_.priority) ($($_.estimated_minutes)min)" }
     $orderString = $order -join " → "
@@ -211,8 +211,8 @@ $verifyScheduling = Test-Step "Verify Task Scheduling Order" {
     return "Order: $orderString, Start: $startTime"
 }
 
-$getPlan = Test-Step "Retrieve Plan by Date" {
-    $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans?date=2026-01-27' -Headers $headers
+$null = Test-Step "Retrieve Plan by Date" {
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans?date=2026-01-27' -Headers $headers
     return "Plan retrieved, $($response.blocks.Count) blocks"
 }
 
@@ -221,9 +221,9 @@ Write-Host "`n═══ 6. BLOCK ACTIONS ═══`n" -ForegroundColor Cyan
 if ($global:planBlocks -and $global:planBlocks.Count -gt 0) {
     $testBlockId = $global:planBlocks[0].id
     
-    $markDone = Test-Step "Mark Block as Done" {
+    $null = Test-Step "Mark Block as Done" {
         $body = @{ completeTask = $true } | ConvertTo-Json
-        $response = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/blocks/$testBlockId/done" `
+        $null = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/blocks/$testBlockId/done" `
                                       -Method POST `
                                       -Headers $headers `
                                       -Body $body
@@ -233,17 +233,17 @@ if ($global:planBlocks -and $global:planBlocks.Count -gt 0) {
     if ($global:planBlocks.Count -gt 1) {
         $testBlockId2 = $global:planBlocks[1].id
         
-        $markMissed = Test-Step "Mark Block as Missed (with reschedule)" {
+        $null = Test-Step "Mark Block as Missed (with reschedule)" {
             $body = @{ reschedule = $true } | ConvertTo-Json
-            $response = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/blocks/$testBlockId2/missed" `
+            $null = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/blocks/$testBlockId2/missed" `
                                           -Method POST `
                                           -Headers $headers `
                                           -Body $body
             return "Block missed, task rescheduled"
         }
         
-        $verifyReschedule = Test-Step "Verify Rescheduling from Current Time" {
-            $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans?date=2026-01-27' -Headers $headers
+        $null = Test-Step "Verify Rescheduling from Current Time" {
+            $null = Invoke-RestMethod -Uri 'http://localhost:5000/api/plans?date=2026-01-27' -Headers $headers
             $newBlocks = $response.blocks | Where-Object { $_.status -eq 'pending' }
             
             if ($newBlocks.Count -gt 0) {
@@ -259,7 +259,7 @@ if ($global:planBlocks -and $global:planBlocks.Count -gt 0) {
 
 Write-Host "`n═══ 7. DATA CLEANUP (DELETE OPERATIONS) ═══`n" -ForegroundColor Cyan
 
-$deleteBlock = Test-Step "Delete Busy Block" {
+$null = Test-Step "Delete Busy Block" {
     if ($global:blockId) {
         Invoke-RestMethod -Uri "http://localhost:5000/api/busyblocks/$global:blockId" `
                           -Method DELETE `
@@ -270,7 +270,7 @@ $deleteBlock = Test-Step "Delete Busy Block" {
     }
 }
 
-$deleteTask = Test-Step "Delete Task" {
+$null = Test-Step "Delete Task" {
     if ($global:task3Id) {
         Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/$global:task3Id" `
                           -Method DELETE `
@@ -292,7 +292,7 @@ Test-Step "Frontend JSX Syntax Check" {
 }
 
 Test-Step "Frontend Accessibility" {
-    $response = Invoke-WebRequest -Uri 'http://localhost:3002' -Method GET -TimeoutSec 5
+    $null = Invoke-WebRequest -Uri 'http://localhost:3002' -Method GET -TimeoutSec 5
     if ($response.StatusCode -eq 200) {
         return "Frontend accessible, status 200"
     } else {

@@ -54,7 +54,7 @@ $password = "SecurePass123!"
 
 try {
     $regBody = @{name=$name; email=$email; password=$password} | ConvertTo-Json
-    $reg = Invoke-RestMethod -Uri 'http://localhost:5000/auth/register' -Method POST -Body $regBody -ContentType 'application/json'
+    $null = Invoke-RestMethod -Uri 'http://localhost:5000/auth/register' -Method POST -Body $regBody -ContentType 'application/json'
     TestResult "User Registration" $true "User registered (verification required)"
 } catch {
     TestResult "User Registration" $false $_.Exception.Message
@@ -65,11 +65,6 @@ try {
     # Use psql or direct database access to mark user as verified
     # For now, we'll create a pre-verified user
     
-    $name2 = "VerifiedUser$timestamp"
-    $email2 = "verified${timestamp}@test.com"
-    
-    # Import password hash function
-    $salt = 10
     # We'll use login endpoint with a known test user instead
     
     TestResult "Skip Email Verification (test mode)" $true "Using direct login test"
