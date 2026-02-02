@@ -45,7 +45,7 @@ function computeFreeSlots(plan, blocked, date, workStart, workEnd) {
 }
 
 function getOrderedTasks(tasks) {
-  return [...tasks].sort((a, b) => {
+  const sorted = [...tasks].sort((a, b) => {
     // Step 1: Sort by deadline (null deadlines go last)
     const deadlineA = a.deadline_at ? new Date(a.deadline_at).getTime() : Infinity;
     const deadlineB = b.deadline_at ? new Date(b.deadline_at).getTime() : Infinity;
@@ -55,13 +55,24 @@ function getOrderedTasks(tasks) {
     }
 
     // Step 2: Sort by priority (higher priority first)
-    if (a.priority !== b.priority) {
-      return b.priority - a.priority; // 5 comes before 3
+    const priorityA = parseInt(a.priority) || 3;
+    const priorityB = parseInt(b.priority) || 3;
+    if (priorityA !== priorityB) {
+      return priorityB - priorityA; // 5 comes before 3
     }
 
     // Step 3: Sort by duration (larger tasks first)
-    return b.estimated_minutes - a.estimated_minutes; // 90 min comes before 30 min
-  })
+    const durationA = parseInt(a.estimated_minutes) || 0;
+    const durationB = parseInt(b.estimated_minutes) || 0;
+    return durationB - durationA; // 150 min comes before 90 min comes before 30 min
+  });
+
+  console.log('=== TASK SORTING DEBUG ===');
+  sorted.forEach(t => {
+    console.log(`Task: ${t.title}, Priority: ${t.priority}, Duration: ${t.estimated_minutes} min, Deadline: ${t.deadline_at}`);
+  });
+
+  return sorted;
 }
 
 async function assignSlots(userId, date, workStart, workEnd) {
@@ -87,9 +98,16 @@ async function assignSlots(userId, date, workStart, workEnd) {
   const orderedTasks = getOrderedTasks(tasks);
   const scheduled = [];
 
+  console.log('=== FREE SLOTS AVAILABLE ===');
+  freeSlots.forEach((slot, i) => {
+    console.log(`Slot ${i}: ${slot.start.toLocaleTimeString()} - ${slot.end.toLocaleTimeString()} (${(slot.end - slot.start) / 60000} min)`);
+  });
+
   for (let i = 0; i < orderedTasks.length; i++) {
     let task = orderedTasks[i];
     const taskDuration = task.estimated_minutes * 60_000;
+
+    console.log(`\nTrying to schedule: ${task.title} (${task.estimated_minutes} min)`);
 
     for (let j = 0; j < freeSlots.length; j++) {
       const slot = freeSlots[j];
@@ -98,6 +116,8 @@ async function assignSlots(userId, date, workStart, workEnd) {
       if (slotDuration >= taskDuration) {
         const start = slot.start;
         const end = new Date(start.getTime() + taskDuration);
+
+        console.log(`  ✓ Scheduled in slot ${j}: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`);
 
         scheduled.push({
           task_id: task.id,
