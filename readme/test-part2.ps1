@@ -114,9 +114,9 @@ Test-Function "Handle Rapid Sequential Requests" {
 }
 
 Test-Function "Handle Multiple Concurrent Operations" {
-    $tasks = Invoke-RestMethod -Uri "http://localhost:5000/api/tasks" -Headers $global:authHeaders
-    $blocks = Invoke-RestMethod -Uri "http://localhost:5000/api/busyblocks" -Headers $global:authHeaders
-    $user = Invoke-RestMethod -Uri "http://localhost:5000/api/me" -Headers $global:authHeaders
+    Invoke-RestMethod -Uri "http://localhost:5000/api/tasks" -Headers $global:authHeaders | Out-Null
+    Invoke-RestMethod -Uri "http://localhost:5000/api/busyblocks" -Headers $global:authHeaders | Out-Null
+    Invoke-RestMethod -Uri "http://localhost:5000/api/me" -Headers $global:authHeaders | Out-Null
     return "Concurrent ops successful"
 }
 
@@ -349,7 +349,7 @@ Test-Function "Frontend Serves Root Page" {
 
 Test-Function "Frontend Serves Vite Client" {
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:3000/@vite/client" -UseBasicParsing
+        Invoke-WebRequest -Uri "http://localhost:3000/@vite/client" -UseBasicParsing | Out-Null
         return "Vite client accessible"
     }
     catch {
@@ -368,7 +368,7 @@ Write-Category "Frontend Assets"
 
 Test-Function "Frontend Serves CSS" {
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:3000/src/index.css" -UseBasicParsing
+        Invoke-WebRequest -Uri "http://localhost:3000/src/index.css" -UseBasicParsing | Out-Null
         return "CSS served"
     }
     catch {
@@ -378,7 +378,7 @@ Test-Function "Frontend Serves CSS" {
 
 Test-Function "Frontend Serves Main JS" {
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:3000/src/main.jsx" -UseBasicParsing
+        Invoke-WebRequest -Uri "http://localhost:3000/src/main.jsx" -UseBasicParsing | Out-Null
         return "Main JS served"
     }
     catch {

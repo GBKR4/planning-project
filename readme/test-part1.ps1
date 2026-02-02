@@ -111,7 +111,7 @@ Test-Function "Frontend Content Length Check" {
 Write-Category "CORS and Security Headers"
 
 Test-Function "CORS Headers Present" {
-    $response = Invoke-WebRequest -Uri "http://localhost:5000/health" -UseBasicParsing
+    Invoke-WebRequest -Uri "http://localhost:5000/health" -UseBasicParsing | Out-Null
     return "Headers present"
 }
 
@@ -599,7 +599,7 @@ Test-Function "Generate Plan for Today" {
         workEnd = "22:00"
     } | ConvertTo-Json
     
-    $plan = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders
+    Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders | Out-Null
     return "Today's plan generated"
 }
 
@@ -612,7 +612,7 @@ Test-Function "Generate Plan With Short Work Window" {
         workEnd = "12:00"
     } | ConvertTo-Json
     
-    $plan = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders
+    Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders | Out-Null
     return "2 hour window plan"
 }
 
@@ -623,16 +623,16 @@ Test-Function "Generate Plan With Long Work Window" {
         workEnd = "00:00"
     } | ConvertTo-Json
     
-    $plan = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders
+    Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders | Out-Null
     return "18 hour window plan"
 }
 
 Write-Category "Plan Retrieval"
 
 Test-Function "Retrieve Plan by Date" {
-    $plan = Invoke-RestMethod -Uri "http://localhost:5000/api/plans?date=$tomorrow" -Headers $global:authHeaders
-    if (-not $plan.plan) { throw "No plan found" }
-    return "Plan retrieved: $($plan.blocks.Count) blocks"
+    $result = Invoke-RestMethod -Uri "http://localhost:5000/api/plans?date=$tomorrow" -Headers $global:authHeaders
+    if (-not $result.plan) { throw "No plan found" }
+    return "Plan retrieved: $($result.blocks.Count) blocks"
 }
 
 Test-Function "Regenerate Existing Plan" {
@@ -642,7 +642,7 @@ Test-Function "Regenerate Existing Plan" {
         workEnd = "21:00"
     } | ConvertTo-Json
     
-    $plan = Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders
+    Invoke-RestMethod -Uri "http://localhost:5000/api/plans/generate" -Method POST -Body $body -Headers $global:authHeaders | Out-Null
     return "Plan regenerated"
 }
 
