@@ -1,45 +1,53 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Check if Resend API key is configured
-const isResendConfigured = process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key';
+// Configure email transport (Gmail SMTP)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
-// Initialize Resend if configured
-const resend = isResendConfigured ? new Resend(process.env.RESEND_API_KEY) : null;
-
-export const sendEmail = async ({ to, subject, text }) => {
+export const sendEmail = async ({ to, subject, text, html }) => {
   // Always show email content in development
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('📧 EMAIL CONTENT');
+  console.log('📧 SENDING EMAIL');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`To: ${to}`);
+  console.log(`From: ${process.env.EMAIL_USER}`);
   console.log(`Subject: ${subject}`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(text);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  // Try to send via Resend
+  // Send email via Gmail SMTP
   try {
-    if (!isResendConfigured || !resend) {
-      console.log('⚠️  Email not sent (Resend API key not configured)');
-      console.log('💡 To send real emails: Add RESEND_API_KEY to .env file\n');
-      return;
-    }
-
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+    const mailOptions = {
+      from: `"Planning Project" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       text: text,
-    });
+      html: html || text,
+    };
 
-    if (error) {
-      throw new Error(error.message);
-    }
+    const info = await transporter.sendMail(mailOptions);
     
     console.log(`✅ Email sent successfully to ${to}`);
-    console.log(`   Email ID: ${data.id}\n`);
+    console.log(`   Message ID: ${info.messageId}`);
+    console.log(`   Link in email: Check content above\n`);
+    
+    return info;
   } catch (error) {
     console.log(`❌ Email send failed: ${error.message}\n`);
-    // Don't throw - let the application continue even if email fails
+    
+    if (error.responseCode === 535) {
+      console.log('🔐 Authentication Error - Gmail rejected the password');
+      console.log('💡 Solutions:');
+      console.log('   1. Use App Password: https://myaccount.google.com/apppasswords');
+      console.log('   2. Update EMAIL_PASSWORD in .env with App Password');
+      console.log('   3. Restart backend server\n');
+    }
+    
+    // Don't throw - let the application continue
+    throw error;
   }
 };
