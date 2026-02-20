@@ -2,27 +2,32 @@ import { useMemo } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { PRIORITY_COLORS } from '../../utils/constants';
-import { Clock, CheckCircle2, XCircle, AlertCircle, Ban } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, AlertCircle, Ban, Coffee } from 'lucide-react';
 
 const localizer = momentLocalizer(moment);
 
 const CalendarView = ({ blocks = [], busyBlocks = [], onSelectEvent, selectedDate, onNavigate }) => {
   // Convert blocks to calendar events
   const events = useMemo(() => {
-    const blockEvents = blocks.map(block => ({
-      id: block.id,
-      title: block.task_title || block.title || 'Task',
-      start: new Date(block.start_at),
-      end: new Date(block.end_at),
-      resource: {
-        type: 'task',
-        status: block.status,
-        priority: block.priority || 3,
-        blockId: block.id,
-        taskId: block.task_id,
-        reason: block.reason,
-      }
-    }));
+    const blockEvents = blocks.map(block => {
+      // Check if this is a break block
+      const isBreak = block.block_type === 'break' || block.task_id === null;
+      
+      return {
+        id: block.id,
+        title: isBreak ? '☕ Break' : (block.task_title || block.title || 'Task'),
+        start: new Date(block.start_at),
+        end: new Date(block.end_at),
+        resource: {
+          type: isBreak ? 'break' : 'task',
+          status: block.status,
+          priority: block.priority || 3,
+          blockId: block.id,
+          taskId: block.task_id,
+          reason: block.reason,
+        }
+      };
+    });
 
     const busyEvents = busyBlocks.map(block => ({
       id: `busy-${block.id}`,
@@ -55,26 +60,35 @@ const CalendarView = ({ blocks = [], busyBlocks = [], onSelectEvent, selectedDat
     };
 
     if (type === 'busy') {
-      style.background = 'linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%)';
+      style.background = 'linear-gradient(135deg, #EF4444 0%, #F97316 50%, #F59E0B 100%)';
       style.color = 'white';
-      style.border = '2px solid rgba(255, 255, 255, 0.3)';
+      style.border = '2px solid rgba(255, 255, 255, 0.5)';
+      style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+    } else if (type === 'break') {
+      // Break blocks styled with warm coffee/relaxation theme
+      style.background = 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%)';
+      style.color = 'white';
+      style.border = '2px dashed rgba(255, 255, 255, 0.6)';
+      style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.5)';
     } else if (type === 'task') {
       if (status === 'done') {
-        style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+        style.background = 'linear-gradient(135deg, #10B981 0%, #14B8A6 50%, #06B6D4 100%)';
+        style.color = 'white';
+        style.opacity = '0.95';
+        style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.5)';
+      } else if (status === 'missed') {
+        style.background = 'linear-gradient(135deg, #DC2626 0%, #EF4444 50%, #F87171 100%)';
         style.color = 'white';
         style.opacity = '0.9';
-      } else if (status === 'missed') {
-        style.background = 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)';
-        style.color = 'white';
-        style.opacity = '0.85';
+        style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.5)';
       } else {
-        // Use priority colors with gradients for scheduled blocks
+        // Use vibrant priority colors with rainbow gradients for scheduled blocks
         const priorityColorMap = {
-          5: { bg: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)', color: 'white', shadow: 'rgba(220, 38, 38, 0.3)' },
-          4: { bg: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', shadow: 'rgba(245, 158, 11, 0.3)' },
-          3: { bg: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: 'white', shadow: 'rgba(16, 185, 129, 0.3)' },
-          2: { bg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', color: 'white', shadow: 'rgba(59, 130, 246, 0.3)' },
-          1: { bg: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: 'white', shadow: 'rgba(139, 92, 246, 0.3)' },
+          5: { bg: 'linear-gradient(135deg, #EF4444 0%, #DC2626 50%, #991B1B 100%)', color: 'white', shadow: 'rgba(239, 68, 68, 0.5)' },
+          4: { bg: 'linear-gradient(135deg, #F59E0B 0%, #F97316 50%, #EA580C 100%)', color: 'white', shadow: 'rgba(249, 115, 22, 0.5)' },
+          3: { bg: 'linear-gradient(135deg, #10B981 0%, #14B8A6 50%, #06B6D4 100%)', color: 'white', shadow: 'rgba(20, 184, 166, 0.5)' },
+          2: { bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)', color: 'white', shadow: 'rgba(99, 102, 241, 0.5)' },
+          1: { bg: 'linear-gradient(135deg, #A855F7 0%, #D946EF 50%, #EC4899 100%)', color: 'white', shadow: 'rgba(217, 70, 239, 0.5)' },
         };
         const colors = priorityColorMap[priority] || priorityColorMap[3];
         style.background = colors.bg;
@@ -91,6 +105,7 @@ const CalendarView = ({ blocks = [], busyBlocks = [], onSelectEvent, selectedDat
     const { type, status, priority } = event.resource;
     
     const getStatusIcon = () => {
+      if (type === 'break') return <Coffee className="w-3 h-3" />;
       if (status === 'done') return <CheckCircle2 className="w-3 h-3" />;
       if (status === 'missed') return <XCircle className="w-3 h-3" />;
       if (type === 'busy') return <Ban className="w-3 h-3" />;
@@ -126,7 +141,7 @@ const CalendarView = ({ blocks = [], busyBlocks = [], onSelectEvent, selectedDat
 
 
   return (
-    <div className="h-[600px] bg-gradient-to-br from-white via-gray-50 to-purple-50 rounded-2xl shadow-xl border-2 border-purple-100 p-6 calendar-container">
+    <div className="h-[600px] bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-rose-50 rounded-2xl shadow-2xl border-4 border-transparent bg-clip-padding p-6 calendar-container" style={{borderImage: 'linear-gradient(135deg, #667eea, #764ba2, #f093fb, #4facfe) 1'}}>
       <Calendar
         localizer={localizer}
         events={events}
@@ -150,6 +165,7 @@ const CalendarView = ({ blocks = [], busyBlocks = [], onSelectEvent, selectedDat
         tooltipAccessor={(event) => {
           const { type, status, reason, priority } = event.resource;
           if (type === 'busy') return `🚫 Busy: ${event.title}`;
+          if (type === 'break') return `☕ Break: Take a rest!`;
           const priorityText = { 5: '🔴 Critical', 4: '🟠 High', 3: '🟢 Normal', 2: '🔵 Low', 1: '⚪ Minimal' };
           return `${event.title}\n${priorityText[priority] || ''}\nStatus: ${status}\n${reason || ''}`;
         }}

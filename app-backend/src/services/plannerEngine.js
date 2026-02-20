@@ -44,8 +44,113 @@ function computeFreeSlots(plan, blocked, date, workStart, workEnd) {
   return subtractIntervals({ start: dayStart, end: dayEnd }, mergedIntervels);
 }
 
+function splitSlotsByTime(slots, date, cutoffTime = '14:00') {
+  // Split slots into morning (before cutoff) and evening (after cutoff)
+  const cutoff = new Date(`${date}T${cutoffTime}:00`);
+  const morningSlots = [];
+  const eveningSlots = [];
+
+  slots.forEach(slot => {
+    if (slot.end <= cutoff) {
+      // Entirely morning
+      morningSlots.push(slot);
+    } else if (slot.start >= cutoff) {
+      // Entirely evening
+      eveningSlots.push(slot);
+    } else {
+      // Slot spans the cutoff, split it
+      morningSlots.push({ start: slot.start, end: cutoff });
+      eveningSlots.push({ start: cutoff, end: slot.end });
+    }
+  });
+
+  return { morningSlots, eveningSlots };
+}
+
+function scheduleTasksInSlots(tasks, slots, scheduled, timeSinceLastRest, timeForRest, restAfter) {
+  // Helper function to schedule a list of tasks into specific slots
+  // Returns updated timeSinceLastRest and unscheduled tasks
+  const unscheduled = [];
+
+  for (let task of tasks) {
+    const taskDuration = task.estimated_minutes * 60_000;
+    console.log(`\nTrying to schedule: ${task.title} (${task.estimated_minutes} min, pref: ${task.time_preference || 'anytime'})`);
+
+    let taskScheduled = false;
+    for (let j = 0; j < slots.length; j++) {
+      const slot = slots[j];
+      const slotDuration = slot.end - slot.start;
+
+      if (slotDuration >= taskDuration) {
+        const start = slot.start;
+        const end = new Date(start.getTime() + taskDuration);
+
+        console.log(`  ✓ Scheduled in slot: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`);
+
+        scheduled.push({
+          task_id: task.id,
+          start,
+          end,
+          is_rest: false
+        });
+
+        // Update slots array in-place
+        slots.splice(j, 1, 
+          ...(start > slot.start ? [{ start: slot.start, end: start }] : []), 
+          ...(end < slot.end ? [{ start: end, end: slot.end }] : [])
+        );
+
+        taskScheduled = true;
+        timeSinceLastRest += taskDuration;
+
+        // Check if we need a break AFTER this task
+        if (timeSinceLastRest >= restAfter * 60_000) {
+          const restDuration = timeForRest * 60_000;
+          console.log(`  → Need break after ${timeSinceLastRest / 60_000} min of work`);
+          
+          // Try to fit rest break in the next available slot
+          for (let k = 0; k < slots.length; k++) {
+            const breakSlot = slots[k];
+            const breakSlotDuration = breakSlot.end - breakSlot.start;
+            if (breakSlotDuration >= restDuration) {
+              const breakStart = breakSlot.start;
+              const breakEnd = new Date(breakStart.getTime() + restDuration);
+
+              console.log(`  ✓ Break scheduled: ${breakStart.toLocaleTimeString()} - ${breakEnd.toLocaleTimeString()}`);
+
+              scheduled.push({
+                task_id: null,
+                start: breakStart,
+                end: breakEnd,
+                is_rest: true
+              });
+
+              // Update slots array in-place
+              slots.splice(k, 1, 
+                ...(breakStart > breakSlot.start ? [{ start: breakSlot.start, end: breakStart }] : []), 
+                ...(breakEnd < breakSlot.end ? [{ start: breakEnd, end: breakSlot.end }] : [])
+              );
+              timeSinceLastRest = 0;
+              break;
+            }
+          }
+        }
+
+        break;
+      }
+    }
+
+    if (!taskScheduled) {
+      unscheduled.push(task);
+    }
+  }
+
+  return { timeSinceLastRest, unscheduled };
+}
+
 function getOrderedTasks(tasks) {
-  const sorted = [...tasks].sort((a, b) => {
+  // Sorting function for deadline, priority, duration
+  const sortByPriority = (a, b) => {
     // Step 1: Sort by deadline (null deadlines go last)
     const deadlineA = a.deadline_at ? new Date(a.deadline_at).getTime() : Infinity;
     const deadlineB = b.deadline_at ? new Date(b.deadline_at).getTime() : Infinity;
@@ -65,14 +170,27 @@ function getOrderedTasks(tasks) {
     const durationA = parseInt(a.estimated_minutes) || 0;
     const durationB = parseInt(b.estimated_minutes) || 0;
     return durationB - durationA; // 150 min comes before 90 min comes before 30 min
-  });
+  };
+
+  // Separate tasks by time preference
+  const morningTasks = tasks.filter(t => t.time_preference === 'morning').sort(sortByPriority);
+  const eveningTasks = tasks.filter(t => t.time_preference === 'evening').sort(sortByPriority);
+  const anytimeTasks = tasks.filter(t => !t.time_preference || t.time_preference === 'anytime').sort(sortByPriority);
 
   console.log('=== TASK SORTING DEBUG ===');
-  sorted.forEach(t => {
-    console.log(`Task: ${t.title}, Priority: ${t.priority}, Duration: ${t.estimated_minutes} min, Deadline: ${t.deadline_at}`);
+  console.log(`Morning tasks: ${morningTasks.length}, Evening tasks: ${eveningTasks.length}, Anytime tasks: ${anytimeTasks.length}`);
+  
+  morningTasks.forEach(t => {
+    console.log(`[MORNING] ${t.title}, Priority: ${t.priority}, Duration: ${t.estimated_minutes} min, Deadline: ${t.deadline_at}`);
+  });
+  eveningTasks.forEach(t => {
+    console.log(`[EVENING] ${t.title}, Priority: ${t.priority}, Duration: ${t.estimated_minutes} min, Deadline: ${t.deadline_at}`);
+  });
+  anytimeTasks.forEach(t => {
+    console.log(`[ANYTIME] ${t.title}, Priority: ${t.priority}, Duration: ${t.estimated_minutes} min, Deadline: ${t.deadline_at}`);
   });
 
-  return sorted;
+  return { morningTasks, eveningTasks, anytimeTasks };
 }
 
 async function assignSlots(userId, date, workStart, workEnd, timeForRest = 10, restAfter = 120) {
@@ -92,85 +210,88 @@ async function assignSlots(userId, date, workStart, workEnd, timeForRest = 10, r
   let freeSlots = computeFreeSlots(plan, blocked, date, workStart, workEnd);
 
 
-  const { rows: tasks } = await pool.query(`SELECT id, title, estimated_minutes, deadline_at, priority FROM tasks WHERE user_id = $1 AND status = 'todo' `, [userId]);
+  const { rows: tasks } = await pool.query(`SELECT id, title, estimated_minutes, deadline_at, priority, time_preference FROM tasks WHERE user_id = $1 AND status = 'todo' `, [userId]);
 
   const orderedTasks = getOrderedTasks(tasks);
-  const scheduled = [];
 
   console.log('=== FREE SLOTS AVAILABLE ===');
   freeSlots.forEach((slot, i) => {
     console.log(`Slot ${i}: ${slot.start.toLocaleTimeString()} - ${slot.end.toLocaleTimeString()} (${(slot.end - slot.start) / 60000} min)`);
   });
 
+  // Split slots into morning and evening (cutoff at 2 PM)
+  const { morningSlots, eveningSlots } = splitSlotsByTime(freeSlots, date, '14:00');
+  console.log(`\n=== SLOT SPLIT ===`);
+  console.log(`Morning slots: ${morningSlots.length}, Evening slots: ${eveningSlots.length}`);
+
   let timeSinceLastRest = 0;
+  const scheduled = [];
 
-  for (let i = 0; i < orderedTasks.length; i++) {
-    let task = orderedTasks[i];
-    const taskDuration = task.estimated_minutes * 60_000;
+  // Phase 1: Schedule morning tasks to morning slots
+  console.log('\n=== PHASE 1: Morning Tasks → Morning Slots ===');
+  let result = scheduleTasksInSlots(
+    orderedTasks.morningTasks, 
+    morningSlots, 
+    scheduled, 
+    timeSinceLastRest, 
+    timeForRest, 
+    restAfter
+  );
+  timeSinceLastRest = result.timeSinceLastRest;
+  let unscheduledMorning = result.unscheduled;
 
-    console.log(`\nTrying to schedule: ${task.title} (${task.estimated_minutes} min)`);
+  // Phase 2: Schedule evening tasks to evening slots
+  console.log('\n=== PHASE 2: Evening Tasks → Evening Slots ===');
+  result = scheduleTasksInSlots(
+    orderedTasks.eveningTasks, 
+    eveningSlots, 
+    scheduled, 
+    timeSinceLastRest, 
+    timeForRest, 
+    restAfter
+  );
+  timeSinceLastRest = result.timeSinceLastRest;
+  let unscheduledEvening = result.unscheduled;
 
-    let taskScheduled = false;
-    for (let j = 0; j < freeSlots.length; j++) {
-      const slot = freeSlots[j];
-      const slotDuration = slot.end - slot.start;
+  // Phase 3: Schedule anytime tasks to any remaining slots (morning first, then evening)
+  console.log('\n=== PHASE 3: Anytime Tasks → All Remaining Slots ===');
+  const allRemainingSlots = [...morningSlots, ...eveningSlots];
+  result = scheduleTasksInSlots(
+    orderedTasks.anytimeTasks, 
+    allRemainingSlots, 
+    scheduled, 
+    timeSinceLastRest, 
+    timeForRest, 
+    restAfter
+  );
+  timeSinceLastRest = result.timeSinceLastRest;
 
-      if (slotDuration >= taskDuration) {
-        const start = slot.start;
-        const end = new Date(start.getTime() + taskDuration);
+  // Phase 4: Handle overflow - morning tasks that didn't fit try remaining slots
+  if (unscheduledMorning.length > 0) {
+    console.log('\n=== PHASE 4: Overflow Morning Tasks → Remaining Slots ===');
+    result = scheduleTasksInSlots(
+      unscheduledMorning, 
+      allRemainingSlots, 
+      scheduled, 
+      timeSinceLastRest, 
+      timeForRest, 
+      restAfter
+    );
+    timeSinceLastRest = result.timeSinceLastRest;
+  }
 
-        console.log(`  ✓ Scheduled in slot ${j}: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`);
-
-        scheduled.push({
-          task_id: task.id,
-          start,
-          end,
-          is_rest: false
-        });
-
-        //  update freeSlots in memory
-        freeSlots.splice(j, 1, ...(start > slot.start ? [{ start: slot.start, end: start }] : []), ...(end < slot.end ? [{ start: end, end: slot.end }] : [])
-        );
-
-        taskScheduled = true;
-        break;
-      }
-    }
-
-    // Only increment time if task was successfully scheduled
-    if (taskScheduled) {
-      timeSinceLastRest += taskDuration;
-
-      // Check if we need a break AFTER this task
-      if (timeSinceLastRest >= restAfter * 60_000) {
-        const restDuration = timeForRest * 60_000;
-        console.log(`  → Need break after ${timeSinceLastRest / 60_000} min of work`);
-        
-        // Try to fit rest break in the next available slot
-        for (let j = 0; j < freeSlots.length; j++) {
-          const slot = freeSlots[j];
-          const slotDuration = slot.end - slot.start;
-          if (slotDuration >= restDuration) {
-            const start = slot.start;
-            const end = new Date(start.getTime() + restDuration);
-
-            console.log(`  ✓ Break scheduled: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`);
-
-            scheduled.push({
-              task_id: null,
-              start,
-              end,
-              is_rest: true
-            });
-
-            // Update freeSlots in memory
-            freeSlots.splice(j, 1, ...(start > slot.start ? [{ start: slot.start, end: start }] : []), ...(end < slot.end ? [{ start: end, end: slot.end }] : []));
-            timeSinceLastRest = 0;
-            break;
-          }
-        }
-      }
-    }
+  // Phase 5: Handle overflow - evening tasks that didn't fit try remaining slots
+  if (unscheduledEvening.length > 0) {
+    console.log('\n=== PHASE 5: Overflow Evening Tasks → Remaining Slots ===');
+    result = scheduleTasksInSlots(
+      unscheduledEvening, 
+      allRemainingSlots, 
+      scheduled, 
+      timeSinceLastRest, 
+      timeForRest, 
+      restAfter
+    );
+    timeSinceLastRest = result.timeSinceLastRest;
   }
 
   return scheduled;
@@ -252,7 +373,7 @@ async function regeneratePlan(userId, date, missedBlockId) {
 
     // Get tasks for reason generation
     const { rows: tasks } = await pool.query(
-      `SELECT id, title, deadline_at, priority FROM tasks WHERE user_id = $1`,
+      `SELECT id, title, deadline_at, priority, time_preference FROM tasks WHERE user_id = $1`,
       [userId]
     );
 

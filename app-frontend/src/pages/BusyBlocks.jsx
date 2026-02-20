@@ -54,70 +54,87 @@ const BusyBlocks = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Busy Blocks</h1>
-            <p className="mt-2 text-gray-600">Mark times when you're unavailable</p>
+        {/* Header with Vibrant Orange to Red Gradient */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-red-500 via-orange-500 via-amber-500 to-yellow-500 rounded-2xl p-8 shadow-2xl">
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white flex items-center space-x-3 drop-shadow-lg">
+                <span className="text-5xl animate-bounce">🚫</span>
+                <span>Busy Blocks</span>
+              </h1>
+              <p className="mt-2 text-white text-lg drop-shadow-md">Mark times when you're unavailable</p>
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-8 py-4 bg-white text-orange-600 rounded-2xl hover:bg-yellow-50 transition-all duration-300 font-black shadow-2xl hover:shadow-3xl hover:-translate-y-2 hover:scale-110 flex items-center space-x-2"
+            >
+              <span className="text-2xl">➕</span>
+              <span>Add Busy Block</span>
+            </button>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
-          >
-            ➕ Add Busy Block
-          </button>
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-40 w-40 rounded-full bg-yellow-300 opacity-30 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-40 w-40 rounded-full bg-red-300 opacity-30 blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-48 w-48 rounded-full bg-white opacity-20 blur-3xl"></div>
         </div>
 
         {/* Blocks List */}
         {sortedDates.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <p className="text-gray-500 text-lg">No busy blocks yet</p>
+          <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl shadow-2xl border-2 border-orange-200 p-16 text-center">
+            <div className="mb-6">
+              <div className="mx-auto w-28 h-28 bg-gradient-to-br from-red-400 via-orange-500 to-yellow-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
+                <span className="text-6xl">🚫</span>
+              </div>
+            </div>
+            <p className="text-gray-700 text-2xl font-bold mb-6">🎉 No busy blocks yet!</p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              className="px-8 py-4 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white rounded-2xl hover:from-orange-600 hover:via-amber-600 hover:to-yellow-600 transition-all duration-300 font-black shadow-xl hover:shadow-2xl hover:-translate-y-2 hover:scale-110"
             >
-              Add Your First Busy Block
+              ✨ Add Your First Busy Block
             </button>
           </div>
         ) : (
           <div className="space-y-8">
             {sortedDates.map((date) => (
-              <div key={date} className="space-y-4">
+              <div key={date} className="space-y-5">
                 {/* Date Header */}
-                <h2 className="text-lg font-bold text-gray-900">
-                  {format(new Date(date), 'EEEE, MMMM dd, yyyy')}
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent flex items-center space-x-2">
+                  <span>📅</span>
+                  <span>{format(new Date(date), 'EEEE, MMMM dd, yyyy')}</span>
                 </h2>
 
                 {/* Blocks for this date */}
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-5">
                   {groupedBlocks[date]
                     .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
                     .map((block) => (
                       <div
                         key={block.id}
-                        className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                        className="group bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-100 rounded-2xl shadow-xl border-l-[8px] border-gradient-to-b from-red-500 to-orange-500 p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] border-orange-500"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {block.title}
+                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors flex items-center space-x-2">
+                              <span className="text-2xl">🚫</span>
+                              <span>{block.title}</span>
                             </h3>
-                            <div className="flex items-center space-x-4 mt-3">
-                              <span className="text-sm text-gray-600">
-                                🕐 {format(new Date(block.start_at), 'HH:mm')} - {format(new Date(block.end_at), 'HH:mm')}
+                            <div className="flex items-center space-x-6 mt-4">
+                              <span className="text-base font-semibold text-gray-700 flex items-center space-x-1.5 bg-white px-3 py-2 rounded-xl shadow-sm">
+                                <span>🕐</span>
+                                <span>{format(new Date(block.start_at), 'HH:mm')} - {format(new Date(block.end_at), 'HH:mm')}</span>
                               </span>
-                              <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
-                                {calculateDuration(block.start_at, block.end_at)}
+                              <span className="px-4 py-2 text-sm font-black bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-white rounded-xl shadow-md hover:scale-110 transition-transform">
+                                ⏱️ {calculateDuration(block.start_at, block.end_at)}
                               </span>
                             </div>
                           </div>
 
-                          {/* Delete Button */}
+                          {/* Delete Button with Enhanced Styling */}
                           <button
                             onClick={() => handleDeleteBlock(block.id)}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-4 text-red-600 hover:text-white hover:bg-red-500 rounded-2xl transition-all duration-300 shadow-md hover:shadow-xl hover:scale-125"
                           >
-                            🗑️
+                            <span className="text-2xl">🗑️</span>
                           </button>
                         </div>
                       </div>

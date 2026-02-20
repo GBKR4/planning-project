@@ -39,13 +39,13 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300">
             <svg
-              className="h-10 w-10 text-white"
+              className="h-12 w-12 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -58,10 +58,10 @@ const ForgotPassword = () => {
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-8 text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Forgot Password?
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-3 text-base text-gray-600 font-medium">
             {emailSent 
               ? "Check your email for reset instructions"
               : "Enter your email and we'll send you a reset link"
@@ -71,30 +71,30 @@ const ForgotPassword = () => {
 
         {emailSent ? (
           /* Success Message */
-          <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-8 space-y-6">
             <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Email Sent!</h3>
-              <p className="text-gray-600 mb-6">
-                We've sent a password reset link to <strong>{getValues('email')}</strong>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">✨ Email Sent!</h3>
+              <p className="text-gray-600 mb-6 text-base">
+                We've sent a password reset link to <strong className="text-indigo-600">{getValues('email')}</strong>
               </p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 mb-6">
                 Didn't receive the email? Check your spam folder or try again.
               </p>
               <div className="space-y-3">
                 <button
                   onClick={() => setEmailSent(false)}
-                  className="w-full px-4 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+                  className="w-full px-6 py-3 border-2 border-indigo-500 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all duration-300 font-bold shadow-sm hover:shadow-md"
                 >
-                  Send Again
+                  🔄 Send Again
                 </button>
                 <Link to="/login">
-                  <button className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
-                    Back to Login
+                  <button className="w-full px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 font-bold shadow-md hover:shadow-xl">
+                    ← Back to Login
                   </button>
                 </Link>
               </div>
@@ -102,20 +102,20 @@ const ForgotPassword = () => {
           </div>
         ) : (
           /* Forgot Password Form */
-          <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-8 space-y-6">
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                📧 Email Address
               </label>
               <input
                 id="email"
                 type="email"
                 autoComplete="email"
                 {...register('email')}
-                className={`w-full px-4 py-3 border ${
+                className={`w-full px-4 py-3 border-2 ${
                   errors.email ? 'border-red-300' : 'border-gray-300'
-                } rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+                } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-indigo-400`}
                 placeholder="Enter your email"
               />
               {errors.email && (

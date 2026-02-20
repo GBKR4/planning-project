@@ -84,13 +84,13 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300">
             <svg
-              className="h-10 w-10 text-white"
+              className="h-12 w-12 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -103,30 +103,30 @@ const Register = () => {
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-8 text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Create Account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-3 text-base text-gray-600 font-medium">
             Join us and start planning your day
           </p>
         </div>
 
         {/* Registration Form */}
-        <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100">
+        <div className="bg-white py-8 px-6 shadow-2xl rounded-2xl border-2 border-gray-100">
           <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                👤 Full Name
               </label>
               <input
                 id="name"
                 type="text"
                 autoComplete="name"
                 {...register('name')}
-                className={`appearance-none block w-full px-4 py-3 border ${
+                className={`appearance-none block w-full px-4 py-3 border-2 ${
                   errors.name ? 'border-red-300' : 'border-gray-300'
-                } rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+                } rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-indigo-400`}
                 placeholder="John Doe"
               />
               {errors.name && (
@@ -136,17 +136,17 @@ const Register = () => {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                📧 Email Address
               </label>
               <input
                 id="email"
                 type="email"
                 autoComplete="email"
                 {...register('email')}
-                className={`appearance-none block w-full px-4 py-3 border ${
+                className={`appearance-none block w-full px-4 py-3 border-2 ${
                   errors.email ? 'border-red-300' : 'border-gray-300'
-                } rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+                } rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-indigo-400`}
                 placeholder="you@example.com"
               />
               {errors.email && (
@@ -156,17 +156,17 @@ const Register = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                🔐 Password
               </label>
               <input
                 id="password"
                 type="password"
                 autoComplete="new-password"
                 {...register('password')}
-                className={`appearance-none block w-full px-4 py-3 border ${
+                className={`appearance-none block w-full px-4 py-3 border-2 ${
                   errors.password ? 'border-red-300' : 'border-gray-300'
-                } rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+                } rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-indigo-400`}
                 placeholder="••••••••"
               />
               {errors.password && (
@@ -199,17 +199,17 @@ const Register = () => {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                🔑 Confirm Password
               </label>
               <input
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
                 {...register('confirmPassword')}
-                className={`appearance-none block w-full px-4 py-3 border ${
+                className={`appearance-none block w-full px-4 py-3 border-2 ${
                   errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                } rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+                } rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-indigo-400`}
                 placeholder="••••••••"
               />
               {errors.confirmPassword && (

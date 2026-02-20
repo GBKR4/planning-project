@@ -66,6 +66,19 @@ export const TASK_STATUS = {
   DONE: 'done'
 };
 
+// Time Preference
+export const TIME_PREFERENCE = {
+  MORNING: 'morning',
+  EVENING: 'evening',
+  ANYTIME: 'anytime'
+};
+
+export const TIME_PREFERENCE_LABELS = {
+  morning: 'Morning',
+  evening: 'Evening',
+  anytime: 'Anytime'
+};
+
 // Block Types
 export const BLOCK_TYPE = {
   TASK: 'task',

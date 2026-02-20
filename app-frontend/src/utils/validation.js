@@ -85,6 +85,12 @@ export const taskSchema = z.object({
     .number()
     .min(1, 'Priority must be between 1 and 5')
     .max(5, 'Priority must be between 1 and 5'),
+  timePreference: z
+    .string()
+    .refine((val) => ['morning', 'evening', 'anytime'].includes(val), {
+      message: 'Time preference must be morning, evening, or anytime'
+    })
+    .default('anytime'),
 });
 
 // Busy block validation schema

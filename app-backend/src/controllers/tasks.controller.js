@@ -13,22 +13,22 @@ export const addTask = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
 
   const {
-    title, notes, estimated_minutes, deadline_at, priority
+    title, notes, estimated_minutes, deadline_at, priority, time_preference
   } = req.body;
 
   if (!title || !estimated_minutes) {
     return res.status(400).json({ message: "title and estimated_minutes are required" });
   }
 
-  const result = await pool.query(`INSERT INTO tasks (user_id, title, notes, estimated_minutes, deadline_at, priority) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [
+  const result = await pool.query(`INSERT INTO tasks (user_id, title, notes, estimated_minutes, deadline_at, priority, time_preference) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`, [
     userId,
     title,
     notes || null,
     estimated_minutes,
     deadline_at || null,
-    priority || 3
-  ]
-  );
+    priority || 3,
+    time_preference || 'anytime'
+  ]);
 
   res.status(201).json(result.rows[0]);
 });
@@ -63,7 +63,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
 export const updateTask = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const id = req.params.id;
-  const { title, notes, estimated_minutes, deadline_at, priority, status } = req.body;
+  const { title, notes, estimated_minutes, deadline_at, priority, status, time_preference } = req.body;
 
   // Build dynamic update query
   const updates = [];
@@ -93,6 +93,10 @@ export const updateTask = asyncHandler(async (req, res) => {
   if (status !== undefined) {
     updates.push(`status = $${paramCount++}`);
     values.push(status);
+  }
+  if (time_preference !== undefined) {
+    updates.push(`time_preference = $${paramCount++}`);
+    values.push(time_preference);
   }
 
   if (updates.length === 0) {

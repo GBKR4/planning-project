@@ -8,6 +8,8 @@ import Button from '../components/common/Button';
 import ChangePasswordModal from '../components/profile/ChangePasswordModal';
 import DeleteAccountModal from '../components/profile/DeleteAccountModal';
 import { useMe, useUpdateProfile } from '../hooks/useUsers';
+import { useTasks } from '../hooks/useTasks';
+import { useBusyBlocks } from '../hooks/useBusyBlocks';
 import { resendVerification } from '../api/authApi';
 import useAuth from '../hooks/useAuth';
 import { format } from 'date-fns';
@@ -21,10 +23,16 @@ const profileSchema = z.object({
 const Profile = () => {
   const { user: authUser } = useAuth();
   const { data: user, isLoading } = useMe();
+  const { data: tasks } = useTasks();
+  const { data: busyBlocks } = useBusyBlocks();
   const updateProfileMutation = useUpdateProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+
+  // Calculate stats
+  const completedTasks = tasks?.filter(t => t.status === 'done').length || 0;
+  const totalBusyBlocks = busyBlocks?.length || 0;
 
   const {
     register,
@@ -74,34 +82,49 @@ const Profile = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="mt-2 text-gray-600">Manage your account information</p>
+        {/* Header with Rainbow Gradient */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 to-rose-500 rounded-2xl p-8 shadow-2xl mb-6">
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold text-white flex items-center space-x-3 drop-shadow-lg">
+              <span className="text-5xl animate-bounce">👤</span>
+              <span>Profile</span>
+            </h1>
+            <p className="mt-2 text-white text-lg drop-shadow-md">Manage your account information</p>
+          </div>
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-40 w-40 rounded-full bg-yellow-300 opacity-30 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-40 w-40 rounded-full bg-cyan-300 opacity-30 blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-48 w-48 rounded-full bg-white opacity-20 blur-3xl"></div>
         </div>
 
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {/* Header Section with Avatar */}
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-12">
-            <div className="flex items-center space-x-6">
-              {/* Avatar */}
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl font-bold text-indigo-600">
-                {user?.name?.charAt(0).toUpperCase()}
+        {/* Profile Card with Enhanced Colors */}
+        <div className="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-2xl border-2 border-purple-200 overflow-hidden">
+          {/* Header Section with Avatar and Rainbow Gradient */}
+          <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 via-pink-600 to-rose-600 px-8 py-16">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-400 to-rose-400 opacity-50"></div>
+            <div className="relative z-10 flex items-center space-x-8">
+              {/* Avatar with Rainbow Glow */}
+              <div className="relative group">
+                <div className="w-32 h-32 bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-300 rounded-full flex items-center justify-center text-5xl font-black text-white shadow-2xl group-hover:scale-110 transition-all duration-300 border-4 border-white">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity animate-pulse"></div>
               </div>
               {/* User Info */}
               <div className="text-white">
-                <h2 className="text-2xl font-bold">{user?.name}</h2>
-                <p className="text-indigo-100 mt-1">{user?.email}</p>
+                <h2 className="text-3xl font-bold drop-shadow-lg">{user?.name}</h2>
+                <p className="text-indigo-100 mt-2 text-lg drop-shadow">{user?.email}</p>
               </div>
             </div>
           </div>
 
           {/* Details Section */}
-          <div className="px-8 py-6 space-y-6">
+          <div className="px-8 py-8 space-y-8">
             {/* Account Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 flex items-center space-x-2">
+                <span>📝</span>
+                <span>Account Information</span>
+              </h3>
               
               {isEditing ? (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -113,7 +136,7 @@ const Profile = () => {
                       <input
                         type="text"
                         {...register('name')}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-400 bg-white shadow-sm"
                       />
                       {errors.name && (
                         <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -126,7 +149,7 @@ const Profile = () => {
                       <input
                         type="email"
                         {...register('email')}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-400 bg-white shadow-sm"
                       />
                       {errors.email && (
                         <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -171,20 +194,23 @@ const Profile = () => {
             {/* Email Verification Status */}
             {user?.email_verified !== undefined && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Verification Status</h3>
-                <div className="flex items-center space-x-2">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent mb-6 flex items-center space-x-2">
+                  <span>✔️</span>
+                  <span>Verification Status</span>
+                </h3>
+                <div className="flex items-center space-x-3">
                   {user.email_verified ? (
-                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                    <span className="px-5 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white rounded-xl text-base font-black shadow-lg hover:scale-110 transition-transform">
                       ✓ Email Verified
                     </span>
                   ) : (
                     <>
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                      <span className="px-5 py-3 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white rounded-xl text-base font-black shadow-lg animate-pulse">
                         ⚠ Email Not Verified
                       </span>
                       <button 
                         onClick={handleResendVerification}
-                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                        className="text-base text-purple-600 hover:text-pink-600 font-black underline decoration-2 hover:decoration-pink-600 transition-colors"
                       >
                         Resend verification email
                       </button>
@@ -194,58 +220,70 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Actions */}
-            <div className="pt-4 border-t border-gray-200">
+            {/* Actions with Colorful Buttons */}
+            <div className="pt-6 border-t-2 border-purple-200">
               <div className="flex space-x-4">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white rounded-2xl hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all duration-300 font-black shadow-lg hover:shadow-2xl hover:-translate-y-1 hover:scale-105 flex items-center space-x-2"
                   disabled={isEditing}
                 >
-                  {isEditing ? 'Editing...' : 'Edit Profile'}
+                  <span className="text-xl">{isEditing ? '✏️' : '✏️'}</span>
+                  <span>{isEditing ? 'Editing...' : 'Edit Profile'}</span>
                 </button>
                 <button 
                   onClick={() => setShowChangePassword(true)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="px-8 py-4 border-3 border-purple-500 bg-white text-purple-700 rounded-2xl hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all duration-300 font-black shadow-md hover:shadow-xl hover:-translate-y-1 flex items-center space-x-2"
                 >
-                  Change Password
+                  <span className="text-xl">🔐</span>
+                  <span>Change Password</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-indigo-600">0</div>
-              <div className="text-sm text-gray-600 mt-1">Tasks Completed</div>
+        {/* Stats Card with Rainbow Colors */}
+        <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 rounded-2xl shadow-2xl border-2 border-purple-200 p-8">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-8 flex items-center space-x-2">
+            <span className="text-3xl">📊</span>
+            <span>Quick Stats</span>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center p-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl shadow-xl hover:scale-110 hover:rotate-3 transition-all duration-300 transform">
+              <div className="text-6xl font-black text-white drop-shadow-lg">{completedTasks}</div>
+              <div className="text-sm font-bold text-white mt-3 drop-shadow">✓ Tasks Completed</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">0</div>
-              <div className="text-sm text-gray-600 mt-1">Plans Generated</div>
+            <div className="text-center p-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl shadow-xl hover:scale-110 hover:rotate-3 transition-all duration-300 transform">
+              <div className="text-6xl font-black text-white drop-shadow-lg">{tasks?.length || 0}</div>
+              <div className="text-sm font-bold text-white mt-3 drop-shadow">📋 Total Tasks</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">0</div>
-              <div className="text-sm text-gray-600 mt-1">Busy Blocks</div>
+            <div className="text-center p-8 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-2xl shadow-xl hover:scale-110 hover:rotate-3 transition-all duration-300 transform">
+              <div className="text-6xl font-black text-white drop-shadow-lg">{totalBusyBlocks}</div>
+              <div className="text-sm font-bold text-white mt-3 drop-shadow">🚫 Busy Blocks</div>
             </div>
           </div>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h3>
-          <p className="text-sm text-red-700 mb-4">
-            Once you delete your account, there is no going back. Please be certain.
-          </p>
-          <button 
-            onClick={() => setShowDeleteAccount(true)}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-          >
-            Delete Account
-          </button>
+        {/* Danger Zone with Enhanced Red Gradient */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-red-100 via-rose-100 to-pink-100 border-4 border-red-400 rounded-2xl p-8 shadow-2xl">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-red-400 opacity-20 blur-2xl"></div>
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-3 flex items-center space-x-2">
+              <span className="text-3xl">⚠️</span>
+              <span>Danger Zone</span>
+            </h3>
+            <p className="text-base text-red-800 mb-6 font-bold">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <button 
+              onClick={() => setShowDeleteAccount(true)}
+              className="px-8 py-4 bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:from-red-700 hover:via-rose-700 hover:to-pink-700 text-white rounded-2xl transition-all duration-300 font-black shadow-xl hover:shadow-2xl hover:-translate-y-1 hover:scale-105 flex items-center space-x-2"
+            >
+              <span className="text-xl">🗑️</span>
+              <span>Delete Account</span>
+            </button>
+          </div>
         </div>
       </div>
 

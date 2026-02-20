@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   deadline_at TIMESTAMPTZ,
   priority INT NOT NULL DEFAULT 3 CHECK (priority BETWEEN 1 AND 5),
   status TEXT NOT NULL DEFAULT 'todo' CHECK (status IN ('todo','done')),
+  time_preference TEXT NOT NULL DEFAULT 'anytime' CHECK (time_preference IN ('morning','evening','anytime')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

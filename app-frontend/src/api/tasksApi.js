@@ -30,6 +30,7 @@ export const createTask = async (data) => {
     estimated_minutes: data.estimatedMinutes || data.estimated_minutes,
     deadline_at: data.deadlineAt || data.deadline_at || null,
     priority: data.priority || 3,
+    time_preference: data.timePreference || data.time_preference || 'anytime',
   };
   const response = await apiClient.post(API_ENDPOINTS.TASKS, payload);
   return response.data;
@@ -51,6 +52,8 @@ export const updateTask = async (taskId, data) => {
   if (data.deadline_at !== undefined) payload.deadline_at = data.deadline_at;
   if (data.priority !== undefined) payload.priority = data.priority;
   if (data.status !== undefined) payload.status = data.status;
+  if (data.timePreference !== undefined) payload.time_preference = data.timePreference;
+  if (data.time_preference !== undefined) payload.time_preference = data.time_preference;
   
   const response = await apiClient.patch(API_ENDPOINTS.TASK_BY_ID(taskId), payload);
   return response.data;

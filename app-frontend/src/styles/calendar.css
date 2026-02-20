@@ -1,6 +1,6 @@
 /* Custom styles for React Big Calendar - Modern Design */
 
-/* Animations */
+/* Animations with vibrant effects */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -21,6 +21,21 @@
   }
 }
 
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
+  }
+}
+
 /* Calendar container */
 .calendar-container {
   animation: slideIn 0.4s ease-out;
@@ -28,71 +43,79 @@
 
 .rbc-calendar {
   font-family: inherit;
-  background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #fdf4ff 50%, #fef3c7 100%);
   border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Toolbar styling - Modern gradient header */
+/* Toolbar styling - Rainbow gradient header */
 .rbc-toolbar {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  background-size: 200% 200%;
+  animation: rainbow 8s ease infinite;
   border-radius: 1rem 1rem 0 0;
-  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .rbc-toolbar .rbc-toolbar-label {
   color: white;
-  font-size: 1.25rem;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  letter-spacing: 0.5px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .rbc-toolbar button {
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.75rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.15);
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   color: white;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.875rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .rbc-toolbar button:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.7);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .rbc-toolbar button.rbc-active {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%);
   color: #667eea;
   border-color: white;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.5), 0 0 30px rgba(102, 126, 234, 0.4);
+  font-weight: 900;
+  transform: scale(1.1);
 }
 
-/* Time gutter */
+/* Time gutter with colorful styling */
 .rbc-time-gutter {
   font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 600;
+  color: #8B5CF6;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Event styling - Modern cards */
+/* Event styling - Vibrant gradient cards */
 .rbc-event {
-  border-radius: 0.625rem;
-  padding: 0.375rem 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
   font-size: 0.813rem;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 700;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   position: relative;
@@ -106,15 +129,17 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 5px;
+  background: rgba(255, 255, 255, 0.7);
   transition: width 0.3s;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .rbc-event:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-3px) scale(1.05);
   z-index: 10;
+  border-color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .rbc-event:hover::before {
@@ -130,58 +155,65 @@
   display: none;
 }
 
-/* Today highlighting - Soft glow */
+/* Today highlighting - Rainbow glow */
 .rbc-today {
-  background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
-  box-shadow: inset 0 0 0 2px #fbbf24;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FCD34D 100%);
+  box-shadow: inset 0 0 0 3px #F59E0B;
   position: relative;
+  animation: glow 3s ease-in-out infinite;
 }
 
 .rbc-today::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.2) 0%, transparent 60%);
   pointer-events: none;
   animation: pulse 2s ease-in-out infinite;
 }
 
 .rbc-current-time-indicator {
-  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
-  height: 3px;
-  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3);
+  background: linear-gradient(90deg, #EF4444 0%, #F97316 50%, #F59E0B 100%);
+  height: 4px;
+  box-shadow: 0 3px 16px rgba(239, 68, 68, 0.6), 0 0 30px rgba(249, 115, 22, 0.5);
   position: relative;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .rbc-current-time-indicator::before {
   content: '';
   position: absolute;
-  left: -6px;
-  top: -4.5px;
-  width: 12px;
-  height: 12px;
-  background: #ef4444;
+  left: -8px;
+  top: -6px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #EF4444 0%, #F97316 100%);
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 40px rgba(249, 115, 22, 0.4);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .rbc-header:hover {
-  background: linear-gradient(to bottom, #f3f4f6 0%, #f9fafb 100%);
+  background: linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 50%, #FEF3C7 100%);
   color: #667eea;
   transition: all 0.2s;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
 }
 
-/* Header - Gradient style */
+/* Header - Rainbow gradient style */
 .rbc-header {
   padding: 1rem 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #1f2937;
-  border-bottom: 2px solid #e5e7eb;
-  background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
+  border-bottom: 3px solid transparent;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
   text-transform: uppercase;
   font-size: 0.75rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border-image: linear-gradient(90deg, #667eea, #764ba2, #f093fb) 1;
+  border-image-slice: 1;
 }
 
 .rbc-header + .rbc-header {
@@ -202,36 +234,45 @@
   border-left: 1px solid #e5e7eb;
 }
 
-/* Month view - Card style */
+/* Month view - Colorful card style */
 .rbc-month-view {
-  border: 2px solid #e5e7eb;
+  border: 3px solid transparent;
   border-radius: 0 0 1rem 1rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%);
+  border-image: linear-gradient(135deg, #667eea, #764ba2, #f093fb) 1;
 }
 
 .rbc-month-row {
   border-top: 1px solid #e5e7eb;
 }
 
-/* Date cell styling */
+/* Date cell styling with vibrant colors */
 .rbc-date-cell {
   padding: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #4b5563;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .rbc-date-cell:hover {
-  background: rgba(102, 126, 234, 0.05);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(240, 147, 251, 0.1) 100%);
   color: #667eea;
   cursor: pointer;
+  transform: scale(1.1);
+  border-radius: 0.5rem;
 }
 
 .rbc-now .rbc-button-link {
-  color: #f59e0b;
-  font-weight: 800;
-  font-size: 1.1em;
+  color: #F59E0B;
+  font-weight: 900;
+  font-size: 1.2em;
+  text-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-radius: 50%;
+  padding: 0.25rem;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
 }
 
 .rbc-off-range {
@@ -242,19 +283,23 @@
   background: #fafafa;
 }
 
-/* Selected event - Glow effect */
+/* Selected event - Rainbow glow effect */
 .rbc-event.rbc-selected {
   background-color: inherit;
-  outline: 3px solid #4f46e5;
-  outline-offset: 2px;
-  box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  outline: 4px solid #8B5CF6;
+  outline-offset: 3px;
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(217, 70, 239, 0.3);
+  transform: scale(1.05);
 }
 
-/* Agenda view */
+/* Agenda view with gradient */
 .rbc-agenda-view {
-  border: 2px solid #e5e7eb;
+  border: 3px solid transparent;
   border-radius: 0 0 1rem 1rem;
   overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%);
+  border-image: linear-gradient(135deg, #667eea, #764ba2, #f093fb) 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .rbc-agenda-table {
@@ -264,34 +309,42 @@
 .rbc-agenda-date-cell,
 .rbc-agenda-time-cell {
   padding: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #374151;
-  background: #f9fafb;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .rbc-agenda-event-cell {
   padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 2px solid #fef3c7;
+  transition: all 0.2s;
 }
 
-/* Popup - Glass morphism */
+.rbc-agenda-event-cell:hover {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  transform: translateX(5px);
+}
+
+/* Popup - Rainbow glass morphism */
 .rbc-overlay {
-  border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.2), 0 0 30px rgba(102, 126, 234, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.6);
   max-width: 350px;
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(25px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 243, 199, 0.95) 100%);
 }
 
 .rbc-overlay-header {
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   color: white;
   border-bottom: none;
-  font-weight: 700;
-  border-radius: 1rem 1rem 0 0;
-  font-size: 1rem;
+  font-weight: 800;
+  border-radius: 1.5rem 1.5rem 0 0;
+  font-size: 1.1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Week view timeslots */
@@ -309,30 +362,33 @@
   margin-right: 0;
 }
 
-/* All day row */
+/* All day row with gradient */
 .rbc-allday-cell {
-  background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
-  border-bottom: 2px solid #e5e7eb;
-  font-weight: 600;
-  padding: 0.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-bottom: 3px solid #F59E0B;
+  font-weight: 700;
+  padding: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Show more link */
+/* Show more link with vibrant gradient */
 .rbc-show-more {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
+  padding: 0.375rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
   font-size: 0.75rem;
   margin: 0.25rem;
   text-align: center;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
 .rbc-show-more:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
 }
 
 .rbc-time-column {
