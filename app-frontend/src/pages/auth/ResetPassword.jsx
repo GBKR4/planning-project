@@ -81,21 +81,24 @@ const ResetPassword = () => {
   // Check if token is missing
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      <div className="min-h-screen bg-gradient-to-br from-red-500 via-orange-500 via-pink-500 to-rose-500 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute top-10 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        
+        <div className="max-w-md w-full text-center relative z-10">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 border-4 border-white">
+            <div className="mx-auto w-24 h-24 bg-gradient-to-br from-red-400 to-rose-600 rounded-full flex items-center justify-center mb-4 shadow-2xl animate-pulse">
+              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Invalid Reset Link</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-3xl font-black bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-2">⚠️ Invalid Reset Link</h2>
+            <p className="text-gray-700 mb-6 font-medium text-lg">
               This password reset link is invalid or has expired.
             </p>
             <Link to="/forgot-password">
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
-                Request New Link
+              <button className="px-8 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl hover:from-red-600 hover:to-rose-700 transition-all font-bold shadow-xl hover:shadow-2xl transform hover:scale-105">
+                🔄 Request New Link
               </button>
             </Link>
           </div>
@@ -105,39 +108,44 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 via-indigo-500 to-pink-500 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="absolute top-10 left-10 w-72 h-72 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-10 right-10 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{animationDelay: '1s'}}></div>
+      
+      <div className="max-w-md w-full space-y-8 relative z-10">
+        {/* Header with Vibrant Design */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse">
             <svg
-              className="h-10 w-10 text-white"
+              className="h-12 w-12 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              strokeWidth="2.5"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Reset Password
+          <h2 className="mt-6 text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            🔐 Reset Password
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-lg font-semibold text-white drop-shadow-lg">
             Enter your new password
           </p>
         </div>
 
-        {/* Reset Password Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
-          {/* New Password */}
+        {/* Reset Password Form with Enhanced Design */}
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-3xl shadow-2xl p-8 space-y-6 border-4 border-white">
+          {/* New Password with Colorful Design */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
+            <label htmlFor="password" className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-1">
+              <span>🔑</span>
+              <span>New Password</span>
             </label>
             <div className="relative">
               <input
@@ -145,15 +153,15 @@ const ResetPassword = () => {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 {...register('password')}
-                className={`w-full px-4 py-3 pr-12 border ${
-                  errors.password ? 'border-red-300' : 'border-gray-300'
-                } rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+                className={`w-full px-4 py-3 pr-12 border-2 ${
+                  errors.password ? 'border-red-300' : 'border-purple-300'
+                } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm`}
                 placeholder="Enter new password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-2xl hover:scale-110 transition-transform"
               >
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
@@ -162,12 +170,12 @@ const ResetPassword = () => {
               <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
             )}
 
-            {/* Password Strength Indicator */}
+            {/* Password Strength Indicator with Rainbow Colors */}
             {password && (
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-600">Password Strength</span>
-                  <span className={`text-xs font-medium ${
+                  <span className="text-xs font-semibold text-gray-700">💪 Password Strength</span>
+                  <span className={`text-xs font-black ${
                     passwordStrength <= 1 ? 'text-red-600' :
                     passwordStrength === 2 ? 'text-orange-600' :
                     passwordStrength === 3 ? 'text-yellow-600' : 'text-green-600'
@@ -179,7 +187,7 @@ const ResetPassword = () => {
                   {[1, 2, 3, 4].map((level) => (
                     <div
                       key={level}
-                      className={`h-2 flex-1 rounded-full ${
+                      className={`h-3 flex-1 rounded-full transition-all duration-300 ${
                         level <= passwordStrength ? getStrengthColor() : 'bg-gray-200'
                       }`}
                     />
@@ -189,19 +197,20 @@ const ResetPassword = () => {
             )}
           </div>
 
-          {/* Confirm Password */}
+          {/* Confirm Password with Enhanced Style */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
+            <label htmlFor="confirmPassword" className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-1">
+              <span>✅</span>
+              <span>Confirm Password</span>
             </label>
             <input
               id="confirmPassword"
               type="password"
               autoComplete="new-password"
               {...register('confirmPassword')}
-              className={`w-full px-4 py-3 border ${
-                errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-              } rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors`}
+              className={`w-full px-4 py-3 border-2 ${
+                errors.confirmPassword ? 'border-red-300' : 'border-purple-300'
+              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm`}
               placeholder="Confirm new password"
             />
             {errors.confirmPassword && (
@@ -209,24 +218,24 @@ const ResetPassword = () => {
             )}
           </div>
 
-          {/* Submit Button */}
+          {/* Submit Button with Gradient */}
           <Button
             type="submit"
             variant="primary"
-            className="w-full"
+            className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
             loading={isLoading}
             disabled={isLoading}
           >
-            Reset Password
+            ✨ Reset Password
           </Button>
 
-          {/* Back to Login */}
+          {/* Back to Login with Colorful Link */}
           <div className="text-center">
             <Link
               to="/login"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+              className="text-base font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-pink-700 transition-all"
             >
-              ← Back to Login
+             ← Back to Login
             </Link>
           </div>
         </form>
