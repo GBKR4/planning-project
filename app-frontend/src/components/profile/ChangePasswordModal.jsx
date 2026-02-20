@@ -11,7 +11,7 @@ import { changePassword } from '../../api/usersApi';
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: z.string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(6, 'Password must be at least 6 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
@@ -43,8 +43,8 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   const getPasswordStrength = (password) => {
     if (!password) return { score: 0, label: '', color: '' };
     let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
+    if (password.length >= 6) score++;
+    if (password.length >= 10) score++;
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;

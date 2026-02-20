@@ -49,7 +49,7 @@ export const updateProfile = async (data) => {
  * @param {Object} data - { currentPassword, newPassword }
  */
 export const changePassword = async (data) => {
-  const response = await apiClient.post(`${API_ENDPOINTS.ME}/password`, data);
+  const response = await apiClient.post(API_ENDPOINTS.CHANGE_PASSWORD, data);
   return response.data;
 };
 

@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   VERIFY_EMAIL: '/auth/verifyemail',
   RESEND_VERIFICATION: '/auth/resend-verification',
   PROFILE: '/api/profile',
+  CHANGE_PASSWORD: '/api/change-password',
   
   // Tasks
   TASKS: '/api/tasks',
