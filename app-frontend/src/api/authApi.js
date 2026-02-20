@@ -45,7 +45,7 @@ export const resetPassword = async (data) => {
  * Verify email with token
  */
 export const verifyEmail = async (token) => {
-  const response = await apiClient.post(API_ENDPOINTS.VERIFY_EMAIL, { token });
+  const response = await apiClient.get(`${API_ENDPOINTS.VERIFY_EMAIL}?token=${token}`);
   return response.data;
 };
 

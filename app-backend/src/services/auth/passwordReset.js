@@ -4,9 +4,9 @@ import pool from "../../db/pool.js";
 import { asyncHandler, AppError } from "../../middleware/errorHandler.js";
 
 export const  resetPassword = asyncHandler(async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token, password } = req.body;
 
-  if (!token || !newPassword) {
+  if (!token || !password) {
     return res.status(400).json({ message: "Token and new password are required" });
   }
 
@@ -27,7 +27,7 @@ export const  resetPassword = asyncHandler(async (req, res) => {
 
   const userId = user.id;
 
-  const hashedPassword = await bcryptjs.hash(newPassword, 10);
+  const hashedPassword = await bcryptjs.hash(password, 10);
 
   await pool.query(`UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = $2`, [hashedPassword, userId]);
 
