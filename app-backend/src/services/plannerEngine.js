@@ -75,9 +75,8 @@ function getOrderedTasks(tasks) {
   return sorted;
 }
 
-async function assignSlots(userId, date, workStart, workEnd) {
+async function assignSlots(userId, date, workStart, workEnd, timeForRest = 10, restAfter = 120) {
   const plan = await getPlan(userId, date);
-
   // Create ISO formatted timestamps - ensure workStart/workEnd are in HH:MM format
   const startTime = workStart.substring(0, 5);
   const endTime = workEnd.substring(0, 5);
@@ -103,12 +102,15 @@ async function assignSlots(userId, date, workStart, workEnd) {
     console.log(`Slot ${i}: ${slot.start.toLocaleTimeString()} - ${slot.end.toLocaleTimeString()} (${(slot.end - slot.start) / 60000} min)`);
   });
 
+  let timeSinceLastRest = 0;
+
   for (let i = 0; i < orderedTasks.length; i++) {
     let task = orderedTasks[i];
     const taskDuration = task.estimated_minutes * 60_000;
 
     console.log(`\nTrying to schedule: ${task.title} (${task.estimated_minutes} min)`);
 
+    let taskScheduled = false;
     for (let j = 0; j < freeSlots.length; j++) {
       const slot = freeSlots[j];
       const slotDuration = slot.end - slot.start;
@@ -122,14 +124,51 @@ async function assignSlots(userId, date, workStart, workEnd) {
         scheduled.push({
           task_id: task.id,
           start,
-          end
+          end,
+          is_rest: false
         });
 
         //  update freeSlots in memory
         freeSlots.splice(j, 1, ...(start > slot.start ? [{ start: slot.start, end: start }] : []), ...(end < slot.end ? [{ start: end, end: slot.end }] : [])
         );
 
+        taskScheduled = true;
         break;
+      }
+    }
+
+    // Only increment time if task was successfully scheduled
+    if (taskScheduled) {
+      timeSinceLastRest += taskDuration;
+
+      // Check if we need a break AFTER this task
+      if (timeSinceLastRest >= restAfter * 60_000) {
+        const restDuration = timeForRest * 60_000;
+        console.log(`  → Need break after ${timeSinceLastRest / 60_000} min of work`);
+        
+        // Try to fit rest break in the next available slot
+        for (let j = 0; j < freeSlots.length; j++) {
+          const slot = freeSlots[j];
+          const slotDuration = slot.end - slot.start;
+          if (slotDuration >= restDuration) {
+            const start = slot.start;
+            const end = new Date(start.getTime() + restDuration);
+
+            console.log(`  ✓ Break scheduled: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`);
+
+            scheduled.push({
+              task_id: null,
+              start,
+              end,
+              is_rest: true
+            });
+
+            // Update freeSlots in memory
+            freeSlots.splice(j, 1, ...(start > slot.start ? [{ start: slot.start, end: start }] : []), ...(end < slot.end ? [{ start: end, end: slot.end }] : []));
+            timeSinceLastRest = 0;
+            break;
+          }
+        }
       }
     }
   }
@@ -149,10 +188,12 @@ async function insertAssignedSlots(userId, date) {
 
     for (let i = 0; i < assignedSlots.length; i++) {
       const block = assignedSlots[i];
+      const blockType = block.is_rest ? 'break' : 'task';
 
-      await pool.query(`INSERT INTO plan_blocks (plan_id, task_id, block_type, start_at, end_at) VALUES ($1, $2, 'task', $3, $4)`, [
+      await pool.query(`INSERT INTO plan_blocks (plan_id, task_id, block_type, start_at, end_at) VALUES ($1, $2, $3, $4, $5)`, [
         plans.id,
         block.task_id,
+        blockType,
         block.start,
         block.end
       ]);
@@ -217,14 +258,15 @@ async function regeneratePlan(userId, date, missedBlockId) {
 
     // insert new slots with reason
     for (const block of assignedSlots) {
+      const blockType = block.is_rest ? 'break' : 'task';
       const task = tasks.find(t => t.id === block.task_id);
-      const reason = `Rescheduled: ${task?.deadline_at ? 'Deadline ' + new Date(task.deadline_at).toLocaleDateString() : 'Priority ' + task?.priority}`;
+      const reason = block.is_rest ? 'Automatic break' : `Rescheduled: ${task?.deadline_at ? 'Deadline ' + new Date(task.deadline_at).toLocaleDateString() : 'Priority ' + task?.priority}`;
       
       await pool.query(
         `INSERT INTO plan_blocks
          (plan_id, task_id, block_type, start_at, end_at, reason)
-         VALUES ($1, $2, 'task', $3, $4, $5)`,
-        [plan.id, block.task_id, block.start, block.end, reason]
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [plan.id, block.task_id, blockType, block.start, block.end, reason]
       );
     }
 
