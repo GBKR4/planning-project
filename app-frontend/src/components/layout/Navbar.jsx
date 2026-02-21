@@ -55,13 +55,21 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link
               to="/profile"
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group"
             >
-              <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-indigo-700 font-medium text-sm">
-                  {user?.name?.[0]?.toUpperCase() || 'U'}
-                </span>
-              </div>
+              {user?.profile_photo ? (
+                <img
+                  src={`http://localhost:5000${user.profile_photo}`}
+                  alt={user?.name}
+                  className="h-8 w-8 rounded-full object-cover border-2 border-indigo-200 ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all duration-300 group-hover:scale-110"
+                />
+              ) : (
+                <div className="h-8 w-8 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all duration-300 group-hover:scale-110">
+                  <span className="text-indigo-700 font-medium text-sm">
+                    {user?.name?.[0]?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+              )}
               <span className="text-sm font-medium text-gray-700 hidden sm:block">
                 {user?.name || 'User'}
               </span>

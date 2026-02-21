@@ -10,6 +10,11 @@ import busyBlocksRoutes from "./routes/busyBlocks.routes.js";
 import cookieParser from "cookie-parser";
 import pool from './db/pool.js';
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -29,6 +34,10 @@ app.use(limiter);
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 app.use("/", authRoutes);
 app.use("/", plansRoutes);
 app.use("/", tasksRoutes);

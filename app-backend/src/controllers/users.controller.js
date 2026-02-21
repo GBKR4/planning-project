@@ -1,12 +1,18 @@
 import pool from "../db/pool.js";
 import { asyncHandler, AppError } from "../middleware/errorHandler.js";
 import { hashPassword, comparePassword } from "../utils/password.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const getMe = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
 
   const result = await pool.query(
-    "SELECT id, name, email, email_verified, created_at FROM users WHERE id = $1",
+    "SELECT id, name, email, email_verified, profile_photo, created_at FROM users WHERE id = $1",
     [userId]
   );
 
@@ -160,4 +166,67 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   await pool.query("DELETE FROM users WHERE id = $1", [userId]);
 
   return res.json({ message: "Account deleted successfully" });
+});
+
+export const uploadProfilePhoto = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+
+  // Get old photo path to delete it
+  const oldPhotoResult = await pool.query(
+    "SELECT profile_photo FROM users WHERE id = $1",
+    [userId]
+  );
+
+  // Delete old photo file if exists
+  if (oldPhotoResult.rows[0]?.profile_photo) {
+    const oldPhotoPath = path.join(__dirname, '../../uploads/profiles', path.basename(oldPhotoResult.rows[0].profile_photo));
+    if (fs.existsSync(oldPhotoPath)) {
+      fs.unlinkSync(oldPhotoPath);
+    }
+  }
+
+  // Save new photo path (relative URL)
+  const photoUrl = `/uploads/profiles/${req.file.filename}`;
+  
+  const result = await pool.query(
+    "UPDATE users SET profile_photo = $1 WHERE id = $2 RETURNING id, name, email, email_verified, profile_photo, created_at",
+    [photoUrl, userId]
+  );
+
+  return res.json({
+    message: "Profile photo uploaded successfully",
+    user: result.rows[0]
+  });
+});
+
+export const deleteProfilePhoto = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+
+  // Get current photo path
+  const result = await pool.query(
+    "SELECT profile_photo FROM users WHERE id = $1",
+    [userId]
+  );
+
+  if (!result.rows[0]?.profile_photo) {
+    return res.status(404).json({ message: "No profile photo to delete" });
+  }
+
+  // Delete file
+  const photoPath = path.join(__dirname, '../../uploads/profiles', path.basename(result.rows[0].profile_photo));
+  if (fs.existsSync(photoPath)) {
+    fs.unlinkSync(photoPath);
+  }
+
+  // Remove from database
+  await pool.query(
+    "UPDATE users SET profile_photo = NULL WHERE id = $1",
+    [userId]
+  );
+
+  return res.json({ message: "Profile photo deleted successfully" });
 });

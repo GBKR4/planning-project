@@ -61,3 +61,27 @@ export const deleteAccount = async (data) => {
   const response = await apiClient.post(`${API_ENDPOINTS.ME}/delete`, data);
   return response.data;
 };
+
+/**
+ * Upload profile photo
+ * @param {File} file - Image file
+ */
+export const uploadProfilePhoto = async (file) => {
+  const formData = new FormData();
+  formData.append('photo', file);
+  
+  const response = await apiClient.post(`${API_ENDPOINTS.PROFILE}/photo`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Delete profile photo
+ */
+export const deleteProfilePhoto = async () => {
+  const response = await apiClient.delete(`${API_ENDPOINTS.PROFILE}/photo`);
+  return response.data;
+};
