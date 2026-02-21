@@ -40,7 +40,7 @@ export const deleteUser = async (userId) => {
  * @param {Object} data - { name, email }
  */
 export const updateProfile = async (data) => {
-  const response = await apiClient.put(API_ENDPOINTS.ME, data);
+  const response = await apiClient.put(API_ENDPOINTS.PROFILE, data);
   return response.data;
 };
 

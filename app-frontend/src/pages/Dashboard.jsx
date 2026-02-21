@@ -42,19 +42,23 @@ const Dashboard = () => {
       <div className="space-y-8">
         {/* Email Verification Banner */}
         {user && !user.email_verified && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 border-l-8 border-gradient-to-b from-yellow-500 to-orange-500 p-6 rounded-2xl shadow-xl border-yellow-400 animate-fadeIn hover:shadow-2xl transition-all duration-300">
             <div className="flex items-start">
-              <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mt-0.5" />
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Email not verified
+              <div className="flex-shrink-0">
+                <div className="h-12 w-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg animate-float">
+                  <ExclamationTriangleIcon className="h-7 w-7 text-white" />
+                </div>
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="text-lg font-bold text-yellow-900">
+                  Email not verified ⚠️
                 </h3>
-                <div className="mt-2 text-sm text-yellow-700">
+                <div className="mt-2 text-base text-yellow-800 font-medium">
                   <p>
-                    Please verify your email address to access all features.{' '}
+                    Please verify your email address to unlock all features.{' '}
                     <button
                       onClick={handleResendVerification}
-                      className="font-medium underline hover:text-yellow-600"
+                      className="font-black underline hover:text-orange-600 decoration-2 hover:decoration-orange-600 transition-all"
                     >
                       Resend verification email
                     </button>
@@ -138,12 +142,12 @@ const Dashboard = () => {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Today's Plan */}
-          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-2xl shadow-lg border-2 border-indigo-200 p-6 hover:shadow-2xl hover:border-purple-300 transition-all duration-300">
+          <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-indigo-200/50 p-8 hover:shadow-3xl hover:border-purple-300 transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">📅 Today's Plan</h2>
-              <Link to="/planner" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center space-x-1 group">
+              <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">📅 Today's Plan</h2>
+              <Link to="/planner" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center space-x-2 group px-4 py-2 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all">
                 <span>View All</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                <span className="group-hover:translate-x-1 transition-transform text-lg">→</span>
               </Link>
             </div>
             {todayBlocks.length === 0 ? (

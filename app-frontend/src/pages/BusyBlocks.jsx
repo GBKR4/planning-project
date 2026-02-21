@@ -79,16 +79,16 @@ const BusyBlocks = () => {
 
         {/* Blocks List */}
         {sortedDates.length === 0 ? (
-          <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl shadow-2xl border-2 border-orange-200 p-16 text-center">
-            <div className="mb-6">
-              <div className="mx-auto w-28 h-28 bg-gradient-to-br from-red-400 via-orange-500 to-yellow-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                <span className="text-6xl">🚫</span>
+          <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-3xl border-2 border-orange-200/50 p-20 text-center hover:shadow-3xl transition-all duration-300 animate-fadeIn">
+            <div className="mb-8">
+              <div className="mx-auto w-32 h-32 bg-gradient-to-br from-red-400 via-orange-500 to-yellow-500 rounded-full flex items-center justify-center shadow-2xl animate-float">
+                <span className="text-7xl">🚫</span>
               </div>
             </div>
-            <p className="text-gray-700 text-2xl font-bold mb-6">🎉 No busy blocks yet!</p>
+            <p className="text-gray-800 text-3xl font-black mb-8 bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent">No busy blocks yet! 🎉</p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-8 py-4 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white rounded-2xl hover:from-orange-600 hover:via-amber-600 hover:to-yellow-600 transition-all duration-300 font-black shadow-xl hover:shadow-2xl hover:-translate-y-2 hover:scale-110"
+              className="px-10 py-5 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 text-white rounded-2xl hover:from-red-700 hover:via-orange-600 hover:to-yellow-600 transition-all duration-300 font-black shadow-2xl hover:shadow-3xl hover:-translate-y-1 hover:scale-110 text-lg"
             >
               ✨ Add Your First Busy Block
             </button>
@@ -110,7 +110,7 @@ const BusyBlocks = () => {
                     .map((block) => (
                       <div
                         key={block.id}
-                        className="group bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-100 rounded-2xl shadow-xl border-l-[8px] border-gradient-to-b from-red-500 to-orange-500 p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] border-orange-500"
+                        className="group bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border-l-[10px] border-gradient-to-b from-red-500 to-orange-500 p-8 hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] border-orange-500 animate-fadeIn"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">

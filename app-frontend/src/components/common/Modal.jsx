@@ -28,10 +28,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-3xl bg-white p-8 text-left align-middle shadow-2xl transition-all border border-gray-100 backdrop-blur-sm">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-bold leading-6 text-gray-900 mb-4"
+                  className="text-2xl font-black leading-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6"
                 >
                   {title}
                 </Dialog.Title>

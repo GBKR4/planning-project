@@ -114,39 +114,39 @@ const Planner = () => {
         </div>
 
         {/* Plan Generator with Colorful Design */}
-        <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-2xl shadow-xl border-2 border-purple-200 p-8">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6 flex items-center space-x-2">
-            <span>🎯</span>
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-purple-200/50 p-10 hover:shadow-3xl transition-all duration-300">
+          <h2 className="text-3xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-8 flex items-center space-x-3">
+            <span className="text-4xl animate-float">🎯</span>
             <span>Generate Plan</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
-                <span>📅</span>
+              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-2">
+                <span className="text-lg">📅</span>
                 <span>Date</span>
               </label>
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-400 bg-white shadow-sm"
+                className="w-full px-5 py-4 border-2 border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 hover:border-purple-400 bg-gray-50 hover:bg-white font-semibold shadow-sm hover:shadow-md"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
-                <span>🌅</span>
+              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-2">
+                <span className="text-lg">🌅</span>
                 <span>Work Start</span>
               </label>
               <input
                 type="time"
                 value={workStart}
                 onChange={(e) => setWorkStart(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-400 bg-white shadow-sm"
+                className="w-full px-5 py-4 border-2 border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 hover:border-purple-400 bg-gray-50 hover:bg-white font-semibold shadow-sm hover:shadow-md"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
-                <span>🌆</span>
+              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-2">
+                <span className="text-lg">🌆</span>
                 <span>Work End</span>
               </label>
               <input

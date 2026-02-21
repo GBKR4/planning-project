@@ -30,9 +30,7 @@ const Tasks = () => {
   };
 
   const handleDeleteTask = async (taskId) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      await deleteTask.mutateAsync(taskId);
-    }
+    await deleteTask.mutateAsync(taskId);
   };
 
   const handleToggleStatus = async (task) => {
@@ -129,12 +127,12 @@ const Tasks = () => {
           <div className="bg-gradient-to-br from-gray-50 to-indigo-50 rounded-2xl shadow-lg border-2 border-dashed border-indigo-200 p-16 text-center transform transition-all hover:shadow-xl">
             <div className="text-8xl mb-6">📝</div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">No tasks here yet!</h3>
-            <p className="text-gray-600 text-lg mb-6">Start your productivity journey by creating your first task</p>
+              <p className="text-gray-600 text-lg mb-6 font-semibold">Start your productivity journey by creating your first task</p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center gap-2"
+              className="px-10 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-2xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-300 font-black shadow-2xl hover:shadow-3xl transform hover:scale-110 hover:-translate-y-1 inline-flex items-center gap-3"
             >
-              <span className="text-2xl">✨</span>
+              <span className="text-3xl">✨</span>
               <span>Create Your First Task</span>
             </button>
           </div>

@@ -130,3 +130,34 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   return res.json({ message: "Password changed successfully" });
 });
+
+export const deleteAccount = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ message: "Password is required" });
+  }
+
+  // Get user's password hash
+  const result = await pool.query(
+    "SELECT password_hash FROM users WHERE id = $1",
+    [userId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Verify password
+  const isValid = await comparePassword(password, result.rows[0].password_hash);
+  
+  if (!isValid) {
+    return res.status(401).json({ message: "Password is incorrect" });
+  }
+
+  // Delete user account (cascade will delete related data)
+  await pool.query("DELETE FROM users WHERE id = $1", [userId]);
+
+  return res.json({ message: "Account deleted successfully" });
+});
