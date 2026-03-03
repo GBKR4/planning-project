@@ -1,5 +1,23 @@
 import pool from '../db/pool.js';
 
+// Get public VAPID key for push subscription
+export const getVapidPublicKey = async (req, res) => {
+  try {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+    
+    if (!publicKey) {
+      return res.status(500).json({ 
+        message: 'Push notifications not configured on server' 
+      });
+    }
+    
+    res.json({ publicKey });
+  } catch (error) {
+    console.error('Error getting VAPID public key:', error);
+    res.status(500).json({ message: 'Error getting VAPID key' });
+  }
+};
+
 // Get all notifications for the authenticated user
 export const getNotifications = async (req, res) => {
   const userId = req.user.id;

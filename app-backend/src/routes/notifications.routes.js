@@ -4,6 +4,10 @@ import authMiddleware from '../middleware/auth.js';
 
 const router = Router();
 
+// Public endpoint (no auth required)
+router.get('/api/notifications/vapid-public-key', notificationsController.getVapidPublicKey);
+
+// Protected endpoints (auth required)
 router.get('/api/notifications', authMiddleware, notificationsController.getNotifications);
 router.get('/api/notifications/unread', authMiddleware, notificationsController.getUnreadCount);
 router.patch('/api/notifications/:id/read', authMiddleware, notificationsController.markAsRead);
