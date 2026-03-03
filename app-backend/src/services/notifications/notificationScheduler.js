@@ -13,6 +13,7 @@ const checkUpcomingDeadlines = async () => {
     console.log('🔍 Checking for upcoming task deadlines...');
     
     // Query tasks with deadlines approaching based on user's reminder preference
+    // Only notify if we haven't sent a reminder in the last hour to avoid spam
     const result = await pool.query(
       `SELECT DISTINCT t.*, np.reminder_time_minutes, u.email, u.name
        FROM tasks t
@@ -22,6 +23,13 @@ const checkUpcomingDeadlines = async () => {
              AND NOW() + (np.reminder_time_minutes || ' minutes')::INTERVAL
          AND t.status = 'todo'
          AND np.task_reminders = TRUE
+         AND NOT EXISTS (
+           SELECT 1 FROM notifications n
+           WHERE n.user_id = t.user_id
+             AND n.related_task_id = t.id
+             AND n.type = 'task_reminder'
+             AND n.created_at > NOW() - INTERVAL '1 hour'
+         )
        ORDER BY t.deadline_at ASC`
     );
     
@@ -31,15 +39,19 @@ const checkUpcomingDeadlines = async () => {
       // Send notification for each upcoming task
       for (const task of result.rows) {
         try {
+          const minutesUntilDeadline = Math.round(
+            (new Date(task.deadline_at) - new Date()) / (1000 * 60)
+          );
+          
           await sendMultiChannelNotification({
             userId: task.user_id,
             type: 'task_reminder',
             title: '⏰ Task Reminder',
-            message: `Your task "${task.title}" is due soon!`,
+            message: `Your task "${task.title}" is due in ${minutesUntilDeadline} minutes!`,
             relatedTaskId: task.id
           });
           
-          console.log(`✅ Sent reminder for task: ${task.title} (User: ${task.name})`);
+          console.log(`✅ Sent reminder for task: ${task.title} (User: ${task.name}) - Due in ${minutesUntilDeadline} min`);
         } catch (error) {
           console.error(`❌ Failed to send reminder for task ${task.id}:`, error.message);
         }

@@ -6,8 +6,7 @@ import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Button from '../components/common/Button';
 import ChangePasswordModal from '../components/profile/ChangePasswordModal';
-import DeleteAccountModal from '../components/profile/DeleteAccountModal';
-import { useMe, useUpdateProfile } from '../hooks/useUsers';
+import DeleteAccountModal from '../components/profile/DeleteAccountModal';import NotificationPreferences from '../components/notifications/NotificationPreferences';import { useMe, useUpdateProfile } from '../hooks/useUsers';
 import { useTasks } from '../hooks/useTasks';
 import { useBusyBlocks } from '../hooks/useBusyBlocks';
 import { resendVerification } from '../api/authApi';
@@ -432,6 +431,11 @@ const Profile = () => {
               <div className="text-base font-bold text-white mt-4 drop-shadow">🚫 Busy Blocks</div>
             </div>
           </div>
+        </div>
+
+        {/* Notification Preferences with Glassmorphism */}
+        <div className="relative z-10 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 backdrop-blur-lg rounded-3xl shadow-3xl border-3 border-purple-300 overflow-hidden hover:border-pink-400 hover:shadow-3xl transition-all duration-300">
+          <NotificationPreferences />
         </div>
 
         {/* Danger Zone with Glassmorphism */}

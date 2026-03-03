@@ -70,6 +70,43 @@ const NotificationPreferences = () => {
         Notification Preferences
       </h2>
 
+      {/* Helpful Banner for Push Notifications */}
+      {isSupported && !isSubscribed && permission === 'default' && (
+        <div className="mb-6 p-4 bg-purple-50 border-l-4 border-purple-600 rounded-lg">
+          <div className="flex items-start">
+            <span className="text-2xl mr-3">💡</span>
+            <div>
+              <h4 className="font-semibold text-purple-900 mb-1">
+                Enable Push Notifications
+              </h4>
+              <p className="text-sm text-purple-800">
+                Get notified about tasks and deadlines even when the app is closed. 
+                Click the "Enable" button below to turn on push notifications.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {permission === 'denied' && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-lg">
+          <div className="flex items-start">
+            <span className="text-2xl mr-3">⚠️</span>
+            <div>
+              <h4 className="font-semibold text-red-900 mb-1">
+                Push Notifications Blocked
+              </h4>
+              <p className="text-sm text-red-800">
+                You've blocked push notifications for this site. To enable them:
+                <br />1. Click the lock icon in your browser's address bar
+                <br />2. Find "Notifications" and change it to "Allow"
+                <br />3. Refresh the page and click "Enable" below
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Channels Section */}
         <div>

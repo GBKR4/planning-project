@@ -95,7 +95,8 @@ const PushNotificationPrompt = () => {
 
         {/* Privacy Note */}
         <p className="text-xs text-gray-500 mb-6">
-          You can change notification preferences anytime in settings. We respect your privacy and won't spam you.
+          You can enable or disable notifications anytime from your <strong>Profile page</strong>. 
+          We respect your privacy and won't spam you.
         </p>
 
         {/* Actions */}

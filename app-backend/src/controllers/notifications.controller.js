@@ -221,16 +221,15 @@ export const subscribePush = async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO push_subscriptions 
-        (user_id, endpoint, keys_p256dh, keys_auth, user_agent)
-      VALUES ($1, $2, $3, $4, $5)
+        (user_id, endpoint, p256dh_key, auth_key)
+      VALUES ($1, $2, $3, $4)
       ON CONFLICT (endpoint) 
       DO UPDATE SET 
         user_id = $1,
-        keys_p256dh = $3,
-        keys_auth = $4,
-        user_agent = $5
+        p256dh_key = $3,
+        auth_key = $4
       RETURNING *`,
-      [userId, endpoint, keys.p256dh, keys.auth, req.headers['user-agent'] || null]
+      [userId, endpoint, keys.p256dh, keys.auth]
     );
     
     res.json({ 
