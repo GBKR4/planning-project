@@ -92,3 +92,49 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- INDEXES
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+-- NOTIFICATIONS
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('task_reminder', 'task_overdue', 'plan_created', 'schedule_conflict', 'deadline_approaching')),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  related_task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
+  related_plan_id BIGINT REFERENCES plans(id) ON DELETE CASCADE,
+  read BOOLEAN DEFAULT FALSE,
+  sent_via_email BOOLEAN DEFAULT FALSE,
+  sent_via_push BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- NOTIFICATION PREFERENCES
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  email_enabled BOOLEAN DEFAULT TRUE,
+  push_enabled BOOLEAN DEFAULT TRUE,
+  task_reminders BOOLEAN DEFAULT TRUE,
+  overdue_alerts BOOLEAN DEFAULT TRUE,
+  plan_updates BOOLEAN DEFAULT TRUE,
+  schedule_conflicts BOOLEAN DEFAULT TRUE,
+  reminder_time_minutes INT DEFAULT 30 CHECK (reminder_time_minutes > 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- PUSH SUBSCRIPTIONS
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL UNIQUE,
+  keys_p256dh TEXT NOT NULL,
+  keys_auth TEXT NOT NULL,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- NOTIFICATION INDEXES
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
