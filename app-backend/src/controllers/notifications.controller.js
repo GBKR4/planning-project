@@ -1,4 +1,4 @@
-import { pool } from '../db/pool.js';
+import pool from '../db/pool.js';
 
 // Get all notifications for the authenticated user
 export const getNotifications = async (req, res) => {

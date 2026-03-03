@@ -7,6 +7,7 @@ import plansRoutes from "./routes/plans.routes.js";
 import tasksRoutes from "./routes/tasks.routes.js";
 import usersRoutes from "./routes/users.routes.js"; 
 import busyBlocksRoutes from "./routes/busyBlocks.routes.js";
+import notificationsRoutes from "./routes/notifications.routes.js";
 import cookieParser from "cookie-parser";
 import pool from './db/pool.js';
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
@@ -43,6 +44,7 @@ app.use("/", plansRoutes);
 app.use("/", tasksRoutes);
 app.use("/",usersRoutes);
 app.use("/",busyBlocksRoutes);
+app.use("/", notificationsRoutes);
 app.get("/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");

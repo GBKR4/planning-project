@@ -1,4 +1,4 @@
-import { pool } from '../../db/pool.js';
+import pool from '../../db/pool.js';
 import webpush from 'web-push';
 
 // Configure web-push with VAPID keys from environment

@@ -1,6 +1,6 @@
-import { pool } from '../../db/pool.js';
+import pool from '../../db/pool.js';
 import { sendEmailNotification } from './emailNotificationService.js';
-import { sendPushNotification } from './pushNotificationService.js';
+import { sendPushNotification } from './pushNotificationsService.js';
 
 // Create a notification in the database
 export const createNotification = async (notification) => {

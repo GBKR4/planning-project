@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { pool } from '../../db/pool.js';
+import pool from '../../db/pool.js';
 import { sendMultiChannelNotification } from './notificationService.js';
 
 // Store cron job instances
