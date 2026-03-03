@@ -3,7 +3,7 @@ import { asyncHandler, AppError } from "../middleware/errorHandler.js";
 
 
 export const addDailyPlan = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { plan_date, work_start, work_end } = req.body;
 
   if (!plan_date) {
@@ -32,7 +32,7 @@ export const addPlanBlock = asyncHandler(async (req, res) => {
     return res.status(400).json({ message : "end_at must be greater than start_at"});
   }
 
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   const planCheck = await pool.query("SELECT id FROM plans WHERE id=$1 AND user_id = $2",[plan_id,userId]);
 
@@ -52,7 +52,7 @@ export const addPlanBlock = asyncHandler(async (req, res) => {
 });
 
 export const generatePlan = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { date, workStart, workEnd } = req.body;
 
   if (!date) {
@@ -133,7 +133,7 @@ export const generatePlan = asyncHandler(async (req, res) => {
 });
 
 export const getPlan = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { date } = req.query;
 
   if (!date) {
@@ -145,8 +145,19 @@ export const getPlan = asyncHandler(async (req, res) => {
     [userId, date]
   );
 
+  // Get busy blocks regardless of plan existence
+  const busyBlocks = await pool.query(
+    "SELECT * FROM busy_blocks WHERE user_id = $1 AND DATE(start_at) = $2 ORDER BY start_at",
+    [userId, date]
+  );
+
+  // If no plan exists, return empty structure
   if (plan.rowCount === 0) {
-    return res.status(404).json({ message: "No plan found for this date" });
+    return res.json({
+      plan: null,
+      blocks: [],
+      busyBlocks: busyBlocks.rows
+    });
   }
 
   const blocks = await pool.query(
@@ -158,11 +169,6 @@ export const getPlan = asyncHandler(async (req, res) => {
     [plan.rows[0].id]
   );
 
-  const busyBlocks = await pool.query(
-    "SELECT * FROM busy_blocks WHERE user_id = $1 AND DATE(start_at) = $2 ORDER BY start_at",
-    [userId, date]
-  );
-
   res.json({
     plan: plan.rows[0],
     blocks: blocks.rows,
@@ -171,7 +177,7 @@ export const getPlan = asyncHandler(async (req, res) => {
 });
 
 export const markBlockDone = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const blockId = req.params.blockId;
   const { markTaskDone } = req.body;
 
@@ -211,7 +217,7 @@ export const markBlockDone = asyncHandler(async (req, res) => {
 });
 
 export const markBlockMissed = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const blockId = req.params.blockId;
   const { reschedule = true } = req.body;
 

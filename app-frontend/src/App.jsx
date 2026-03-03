@@ -13,6 +13,8 @@ import Tasks from './pages/Tasks'
 import BusyBlocks from './pages/BusyBlocks'
 import Planner from './pages/Planner'
 import Profile from './pages/Profile'
+import Notifications from './pages/Notifications'
+import PushNotificationPrompt from './components/notifications/PushNotificationPrompt'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +55,7 @@ function App() {
                 },
               }}
             />
+            <PushNotificationPrompt />
             <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
@@ -107,6 +110,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
                 </ProtectedRoute>
               }
             />

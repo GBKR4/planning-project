@@ -4,12 +4,12 @@ import { asyncHandler, AppError } from "../middleware/errorHandler.js";
 
 
 export const addBusyBlock = asyncHandler(async (req, res) => {
-  if (!req.user?.userId) {
+  if (!req.user?.id) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const { title, start_at, end_at } = req.body;
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   if (!title || !start_at || !end_at) {
     return res.status(400).json({ message: "Missing fields" });
@@ -38,7 +38,7 @@ export const addBusyBlock = asyncHandler(async (req, res) => {
 
 
 export const getBusyBlocks = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   const result = await pool.query(`SELECT * FROM busy_blocks WHERE user_id = $1 ORDER BY START_AT`, [userId]);
 
@@ -46,7 +46,7 @@ export const getBusyBlocks = asyncHandler(async (req, res) => {
 });
 
 export const deleteBusyBlock = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const id = req.params.id;
 
   const result = await pool.query("DELETE FROM busy_blocks WHERE id = $1 AND user_id = $2", [id, userId]);

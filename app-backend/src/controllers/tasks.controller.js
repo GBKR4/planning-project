@@ -2,7 +2,7 @@ import pool from "../db/pool.js";
 import { asyncHandler, AppError } from "../middleware/errorHandler.js";
 
 export const getTasks = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   const result = await pool.query("SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
 
@@ -10,7 +10,7 @@ export const getTasks = asyncHandler(async (req, res) => {
 });
 
 export const addTask = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   const {
     title, notes, estimated_minutes, deadline_at, priority, time_preference
@@ -35,7 +35,7 @@ export const addTask = asyncHandler(async (req, res) => {
 
 
 export const getTaskById = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const id = req.params.id;
 
   const result = await pool.query("SELECT * FROM tasks WHERE id = $1 AND user_id = $2",[id,userId]);
@@ -48,7 +48,7 @@ export const getTaskById = asyncHandler(async (req, res) => {
 });
 
 export const deleteTask = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const id = req.params.id;
 
   const result = await pool.query("DELETE FROM tasks WHERE id = $1 AND user_id = $2",[id,userId]);
@@ -61,7 +61,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
 });
 
 export const updateTask = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const id = req.params.id;
   const { title, notes, estimated_minutes, deadline_at, priority, status, time_preference } = req.body;
 

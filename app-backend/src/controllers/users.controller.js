@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getMe = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   const result = await pool.query(
     "SELECT id, name, email, email_verified, profile_photo, created_at FROM users WHERE id = $1",
@@ -20,7 +20,7 @@ export const getMe = asyncHandler(async (req, res) => {
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { name, email } = req.body;
 
   // Check if email is being changed and if it's already taken
@@ -102,7 +102,7 @@ export const deleteUser = asyncHandler(async (req,res) => {
 });
 
 export const changePassword = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
@@ -138,7 +138,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 });
 
 export const deleteAccount = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { password } = req.body;
 
   if (!password) {
@@ -169,7 +169,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
 });
 
 export const uploadProfilePhoto = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
@@ -204,7 +204,7 @@ export const uploadProfilePhoto = asyncHandler(async (req, res) => {
 });
 
 export const deleteProfilePhoto = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   // Get current photo path
   const result = await pool.query(

@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
+import NotificationBell from '../notifications/NotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -53,6 +54,9 @@ const Navbar = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Notification Bell */}
+            <NotificationBell />
+            
             <Link
               to="/profile"
               className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group"

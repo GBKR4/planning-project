@@ -20,34 +20,36 @@ export const getVapidPublicKey = async (req, res) => {
 
 // Get all notifications for the authenticated user
 export const getNotifications = async (req, res) => {
-  const userId = req.user.id;
-  const { limit = 50, offset = 0 } = req.query;
-
   try {
+    const userId = req.user.id;
+    const { limit = 50, offset = 0 } = req.query;
+
+    console.log(`[Notifications] Fetching for user ${userId}, limit: ${limit}, offset: ${offset}`);
+
     const result = await pool.query(
       `SELECT 
         n.id, 
         n.type, 
         n.title,
         n.message, 
+        n.priority,
         n.read,
-        n.related_task_id,
-        n.related_plan_id,
-        n.sent_via_email,
-        n.sent_via_push,
-        n.created_at,
-        t.title as task_title
+        n.read_at,
+        n.related_id,
+        n.related_type,
+        n.created_at
       FROM notifications n
-      LEFT JOIN tasks t ON n.related_task_id = t.id
       WHERE n.user_id = $1 
       ORDER BY n.created_at DESC
       LIMIT $2 OFFSET $3`,
       [userId, limit, offset]
     );
     
+    console.log(`[Notifications] Found ${result.rows.length} notifications`);
     res.json({ notifications: result.rows });
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    console.error('Error fetching notifications:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ message: 'Error fetching notifications' });
   }
 };
