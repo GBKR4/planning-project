@@ -334,33 +334,44 @@ async function regeneratePlan(userId, date, missedBlockId) {
   await pool.query("BEGIN");
 
   try {
+    // Get the missed block details (need end_at for deletion)
+    const missedBlockResult = await pool.query(
+      `SELECT task_id, end_at FROM plan_blocks WHERE id = $1`,
+      [missedBlockId]
+    );
+    
+    const missedBlock = missedBlockResult.rows[0];
+    
+    if (!missedBlock) {
+      throw new Error('Missed block not found');
+    }
+
     // mark missed
     await pool.query(
       `UPDATE plan_blocks SET status = 'missed' WHERE id = $1`,
       [missedBlockId]
     );
 
-    // Get the missed block's task to keep it as todo
-    const missedBlock = await pool.query(
-      `SELECT task_id FROM plan_blocks WHERE id = $1`,
-      [missedBlockId]
-    );
-    
-    if (missedBlock.rows[0]?.task_id) {
+    // Keep the missed task as todo so it can be rescheduled
+    if (missedBlock.task_id) {
       await pool.query(
         `UPDATE tasks SET status = 'todo' WHERE id = $1`,
-        [missedBlock.rows[0].task_id]
+        [missedBlock.task_id]
       );
     }
 
-    // delete future scheduled blocks
-    await pool.query(
+    // delete ALL scheduled blocks that come after the missed block
+    // This ensures old schedule is completely removed before creating new one
+    const deleteResult = await pool.query(
       `DELETE FROM plan_blocks
        WHERE plan_id = $1
          AND status = 'scheduled'
-         AND start_at > $2`,
-      [plan.id, now]
+         AND start_at >= $2
+       RETURNING id`,
+      [plan.id, missedBlock.end_at]
     );
+
+    console.log(`🗑️  Deleted ${deleteResult.rowCount} old scheduled blocks after missed block`);
 
     // reschedule remaining day from current time
     const currentTime = now.toTimeString().slice(0, 5); // HH:MM format in local time
@@ -378,6 +389,7 @@ async function regeneratePlan(userId, date, missedBlockId) {
     );
 
     // insert new slots with reason
+    let insertedCount = 0;
     for (const block of assignedSlots) {
       const blockType = block.is_rest ? 'break' : 'task';
       const task = tasks.find(t => t.id === block.task_id);
@@ -389,7 +401,10 @@ async function regeneratePlan(userId, date, missedBlockId) {
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [plan.id, block.task_id, blockType, block.start, block.end, reason]
       );
+      insertedCount++;
     }
+
+    console.log(`✅ Created ${insertedCount} new rescheduled blocks`);
 
     await pool.query("COMMIT");
   } catch (err) {

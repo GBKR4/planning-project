@@ -1,5 +1,6 @@
 import pool from "../db/pool.js";
 import { asyncHandler, AppError } from "../middleware/errorHandler.js";
+import { sendMultiChannelNotification } from "../services/notifications/notificationService.js";
 
 
 export const addDailyPlan = asyncHandler(async (req, res) => {
@@ -123,6 +124,63 @@ export const generatePlan = asyncHandler(async (req, res) => {
     .filter(t => !scheduledTaskIds.includes(t.id))
     .map(t => ({ taskId: t.id, title: t.title, reason: "Not enough free time today" }));
 
+  // Send notifications for blocks starting soon after plan generation
+  try {
+    // Get user's notification preferences
+    const prefsResult = await pool.query(
+      `SELECT reminder_time_minutes, task_reminders 
+       FROM notification_preferences 
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (prefsResult.rows.length > 0 && prefsResult.rows[0].task_reminders) {
+      const reminderMinutes = prefsResult.rows[0].reminder_time_minutes;
+      
+      // Check which blocks are starting within the reminder window
+      const blocksToNotify = await pool.query(
+        `SELECT pb.*, t.title as task_title, t.id as task_id
+         FROM plan_blocks pb
+         LEFT JOIN tasks t ON pb.task_id = t.id
+         WHERE pb.plan_id = $1
+           AND pb.status = 'scheduled'
+           AND pb.start_at BETWEEN NOW() AND NOW() + ($2 || ' minutes')::INTERVAL
+           AND pb.task_id IS NOT NULL
+         ORDER BY pb.start_at`,
+        [planId, reminderMinutes]
+      );
+
+      console.log(`Found ${blocksToNotify.rows.length} blocks to notify after plan generation`);
+
+      // Send notification for each block
+      for (const notifyBlock of blocksToNotify.rows) {
+        const minutesUntilStart = Math.round(
+          (new Date(notifyBlock.start_at) - new Date()) / 60000
+        );
+        
+        const startTime = new Date(notifyBlock.start_at).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+
+        await sendMultiChannelNotification({
+          userId,
+          type: 'task_starting',
+          title: '🚀 New Task Scheduled - Starting Soon',
+          message: `Your task "${notifyBlock.task_title}" has been scheduled and starts ${minutesUntilStart === 0 ? 'now' : `in ${minutesUntilStart} minute${minutesUntilStart === 1 ? '' : 's'}`} at ${startTime}!`,
+          relatedTaskId: notifyBlock.task_id,
+          relatedPlanId: planId
+        });
+
+        console.log(`✅ Sent notification for newly scheduled task: ${notifyBlock.task_title}`);
+      }
+    }
+  } catch (notificationError) {
+    console.error('Error sending notifications after plan generation:', notificationError);
+    // Don't fail the whole request if notifications fail
+  }
+
   res.json({
     date,
     planId,
@@ -165,9 +223,15 @@ export const getPlan = asyncHandler(async (req, res) => {
      FROM plan_blocks pb 
      LEFT JOIN tasks t ON pb.task_id = t.id 
      WHERE pb.plan_id = $1 
+       AND (
+         (pb.status = 'scheduled' AND pb.start_at >= NOW())
+         OR pb.status = 'done'
+       )
      ORDER BY pb.start_at`,
     [plan.rows[0].id]
   );
+
+  console.log(`📋 Returning ${blocks.rowCount} blocks for plan (future scheduled + done only, hiding old missed)`);
 
   res.json({
     plan: plan.rows[0],
@@ -244,9 +308,27 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
   const block = blockCheck.rows[0];
   const planDate = block.plan_date; // Already in YYYY-MM-DD format from ::text cast
 
-  console.log('Attempting to reschedule:', { planDate, userId });
+  console.log('Attempting to reschedule:', { planDate, userId, blockId });
+  console.log('Missed block details:', { 
+    blockId, 
+    taskId: block.task_id, 
+    startAt: block.start_at, 
+    endAt: block.end_at,
+    status: block.status 
+  });
 
   if (reschedule) {
+    // Delete ALL scheduled blocks in this plan (will reschedule from scratch)
+    const deleteResult = await pool.query(
+      `DELETE FROM plan_blocks 
+       WHERE plan_id = $1 
+       AND status = 'scheduled'
+       RETURNING id`,
+      [block.plan_id]
+    );
+    
+    console.log(`🗑️  Deleted ALL ${deleteResult.rowCount} scheduled blocks before regenerating`);
+
     try {
       // Use the regeneratePlan function to automatically reschedule
       const { regeneratePlan } = await import("../services/plannerEngine.js");
@@ -257,17 +339,82 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
       throw error;
     }
 
-    // Get the newly scheduled blocks
+    // Get ONLY the newly scheduled blocks that start in the future
     const newBlocks = await pool.query(
       `SELECT pb.*, t.title as task_title 
        FROM plan_blocks pb 
        LEFT JOIN tasks t ON pb.task_id = t.id 
        WHERE pb.plan_id = $1 
        AND pb.status = 'scheduled'
-       AND pb.start_at > $2
+       AND pb.start_at >= NOW()
        ORDER BY pb.start_at`,
-      [block.plan_id, new Date()]
+      [block.plan_id]
     );
+
+    console.log(`✅ Returning ${newBlocks.rowCount} FUTURE blocks (starting from now):`,
+      newBlocks.rows.map(b => ({ 
+        id: b.id, 
+        title: b.task_title, 
+        start: new Date(b.start_at).toLocaleTimeString() 
+      }))
+    );
+
+    // Send notifications for blocks starting soon
+    try {
+      // Get user's notification preferences
+      const prefsResult = await pool.query(
+        `SELECT reminder_time_minutes, task_reminders 
+         FROM notification_preferences 
+         WHERE user_id = $1`,
+        [userId]
+      );
+
+      if (prefsResult.rows.length > 0 && prefsResult.rows[0].task_reminders) {
+        const reminderMinutes = prefsResult.rows[0].reminder_time_minutes;
+        
+        // Check which blocks are starting within the reminder window
+        const blocksToNotify = await pool.query(
+          `SELECT pb.*, t.title as task_title, t.id as task_id
+           FROM plan_blocks pb
+           LEFT JOIN tasks t ON pb.task_id = t.id
+           WHERE pb.plan_id = $1
+             AND pb.status = 'scheduled'
+             AND pb.start_at BETWEEN NOW() AND NOW() + ($2 || ' minutes')::INTERVAL
+             AND pb.task_id IS NOT NULL
+           ORDER BY pb.start_at`,
+          [block.plan_id, reminderMinutes]
+        );
+
+        console.log(`Found ${blocksToNotify.rows.length} blocks to notify after regeneration`);
+
+        // Send notification for each block
+        for (const notifyBlock of blocksToNotify.rows) {
+          const minutesUntilStart = Math.round(
+            (new Date(notifyBlock.start_at) - new Date()) / 60000
+          );
+          
+          const startTime = new Date(notifyBlock.start_at).toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          });
+
+          await sendMultiChannelNotification({
+            userId,
+            type: 'task_starting',
+            title: '🚀 Task Rescheduled - Starting Soon',
+            message: `Your task "${notifyBlock.task_title}" has been rescheduled and starts ${minutesUntilStart === 0 ? 'now' : `in ${minutesUntilStart} minute${minutesUntilStart === 1 ? '' : 's'}`} at ${startTime}!`,
+            relatedTaskId: notifyBlock.task_id,
+            relatedPlanId: block.plan_id
+          });
+
+          console.log(`✅ Sent notification for rescheduled task: ${notifyBlock.task_title}`);
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error sending notifications after regeneration:', notificationError);
+      // Don't fail the whole request if notifications fail
+    }
 
     res.json({
       message: "Block marked as missed and remaining day rescheduled",
