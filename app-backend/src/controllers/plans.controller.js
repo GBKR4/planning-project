@@ -1,6 +1,5 @@
 import pool from "../db/pool.js";
 import { asyncHandler, AppError } from "../middleware/errorHandler.js";
-import { sendMultiChannelNotification } from "../services/notifications/notificationService.js";
 
 
 export const addDailyPlan = asyncHandler(async (req, res) => {
@@ -124,62 +123,7 @@ export const generatePlan = asyncHandler(async (req, res) => {
     .filter(t => !scheduledTaskIds.includes(t.id))
     .map(t => ({ taskId: t.id, title: t.title, reason: "Not enough free time today" }));
 
-  // Send notifications for blocks starting soon after plan generation
-  try {
-    // Get user's notification preferences
-    const prefsResult = await pool.query(
-      `SELECT reminder_time_minutes, task_reminders 
-       FROM notification_preferences 
-       WHERE user_id = $1`,
-      [userId]
-    );
-
-    if (prefsResult.rows.length > 0 && prefsResult.rows[0].task_reminders) {
-      const reminderMinutes = prefsResult.rows[0].reminder_time_minutes;
-      
-      // Check which blocks are starting within the reminder window
-      const blocksToNotify = await pool.query(
-        `SELECT pb.*, t.title as task_title, t.id as task_id
-         FROM plan_blocks pb
-         LEFT JOIN tasks t ON pb.task_id = t.id
-         WHERE pb.plan_id = $1
-           AND pb.status = 'scheduled'
-           AND pb.start_at BETWEEN NOW() AND NOW() + ($2 || ' minutes')::INTERVAL
-           AND pb.task_id IS NOT NULL
-         ORDER BY pb.start_at`,
-        [planId, reminderMinutes]
-      );
-
-      console.log(`Found ${blocksToNotify.rows.length} blocks to notify after plan generation`);
-
-      // Send notification for each block
-      for (const notifyBlock of blocksToNotify.rows) {
-        const minutesUntilStart = Math.round(
-          (new Date(notifyBlock.start_at) - new Date()) / 60000
-        );
-        
-        const startTime = new Date(notifyBlock.start_at).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        });
-
-        await sendMultiChannelNotification({
-          userId,
-          type: 'task_starting',
-          title: '🚀 New Task Scheduled - Starting Soon',
-          message: `Your task "${notifyBlock.task_title}" has been scheduled and starts ${minutesUntilStart === 0 ? 'now' : `in ${minutesUntilStart} minute${minutesUntilStart === 1 ? '' : 's'}`} at ${startTime}!`,
-          relatedTaskId: notifyBlock.task_id,
-          relatedPlanId: planId
-        });
-
-        console.log(`✅ Sent notification for newly scheduled task: ${notifyBlock.task_title}`);
-      }
-    }
-  } catch (notificationError) {
-    console.error('Error sending notifications after plan generation:', notificationError);
-    // Don't fail the whole request if notifications fail
-  }
+  console.log('⏰ Scheduler will send notifications 5 minutes before each task starts');
 
   res.json({
     date,
@@ -359,62 +303,7 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
       }))
     );
 
-    // Send notifications for blocks starting soon
-    try {
-      // Get user's notification preferences
-      const prefsResult = await pool.query(
-        `SELECT reminder_time_minutes, task_reminders 
-         FROM notification_preferences 
-         WHERE user_id = $1`,
-        [userId]
-      );
-
-      if (prefsResult.rows.length > 0 && prefsResult.rows[0].task_reminders) {
-        const reminderMinutes = prefsResult.rows[0].reminder_time_minutes;
-        
-        // Check which blocks are starting within the reminder window
-        const blocksToNotify = await pool.query(
-          `SELECT pb.*, t.title as task_title, t.id as task_id
-           FROM plan_blocks pb
-           LEFT JOIN tasks t ON pb.task_id = t.id
-           WHERE pb.plan_id = $1
-             AND pb.status = 'scheduled'
-             AND pb.start_at BETWEEN NOW() AND NOW() + ($2 || ' minutes')::INTERVAL
-             AND pb.task_id IS NOT NULL
-           ORDER BY pb.start_at`,
-          [block.plan_id, reminderMinutes]
-        );
-
-        console.log(`Found ${blocksToNotify.rows.length} blocks to notify after regeneration`);
-
-        // Send notification for each block
-        for (const notifyBlock of blocksToNotify.rows) {
-          const minutesUntilStart = Math.round(
-            (new Date(notifyBlock.start_at) - new Date()) / 60000
-          );
-          
-          const startTime = new Date(notifyBlock.start_at).toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
-          });
-
-          await sendMultiChannelNotification({
-            userId,
-            type: 'task_starting',
-            title: '🚀 Task Rescheduled - Starting Soon',
-            message: `Your task "${notifyBlock.task_title}" has been rescheduled and starts ${minutesUntilStart === 0 ? 'now' : `in ${minutesUntilStart} minute${minutesUntilStart === 1 ? '' : 's'}`} at ${startTime}!`,
-            relatedTaskId: notifyBlock.task_id,
-            relatedPlanId: block.plan_id
-          });
-
-          console.log(`✅ Sent notification for rescheduled task: ${notifyBlock.task_title}`);
-        }
-      }
-    } catch (notificationError) {
-      console.error('Error sending notifications after regeneration:', notificationError);
-      // Don't fail the whole request if notifications fail
-    }
+    console.log('⏰ Scheduler will send notifications 5 minutes before each task starts');
 
     res.json({
       message: "Block marked as missed and remaining day rescheduled",
