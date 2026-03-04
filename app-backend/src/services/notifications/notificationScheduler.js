@@ -5,6 +5,7 @@ import { sendMultiChannelNotification } from './notificationService.js';
 // Store cron job instances
 let upcomingDeadlinesJob = null;
 let overdueTasksJob = null;
+let planBlocksJob = null;
 let dailySummaryJob = null;
 
 // Check for upcoming task deadlines
@@ -115,6 +116,76 @@ const checkOverdueTasks = async () => {
   }
 };
 
+// Check for upcoming plan blocks (tasks about to start)
+const checkUpcomingPlanBlocks = async () => {
+  try {
+    console.log('🔍 Checking for tasks about to start...');
+    
+    // Query plan blocks that are starting soon (based on user's reminder preference)
+    const result = await pool.query(
+      `SELECT DISTINCT 
+         pb.*, 
+         t.title as task_title,
+         t.user_id,
+         u.name,
+         u.email,
+         np.reminder_time_minutes,
+         EXTRACT(EPOCH FROM (pb.start_at - NOW())) / 60 as minutes_until_start
+       FROM plan_blocks pb
+       JOIN plans p ON pb.plan_id = p.id
+       JOIN tasks t ON pb.task_id = t.id
+       JOIN users u ON t.user_id = u.id
+       JOIN notification_preferences np ON t.user_id = np.user_id
+       WHERE pb.start_at BETWEEN NOW() 
+             AND NOW() + (np.reminder_time_minutes || ' minutes')::INTERVAL
+         AND pb.status = 'scheduled'
+         AND pb.task_id IS NOT NULL
+         AND np.task_reminders = TRUE
+         AND NOT EXISTS (
+           SELECT 1 FROM notifications n
+           WHERE n.user_id = t.user_id
+             AND n.related_task_id = t.id
+             AND n.type = 'task_starting'
+             AND n.created_at > NOW() - INTERVAL '1 hour'
+         )
+       ORDER BY pb.start_at ASC`
+    );
+    
+    if (result.rows.length > 0) {
+      console.log(`📬 Found ${result.rows.length} tasks about to start`);
+      
+      // Send notification for each upcoming task start
+      for (const block of result.rows) {
+        try {
+          const minutesUntilStart = Math.round(block.minutes_until_start);
+          const startTime = new Date(block.start_at).toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          });
+          
+          await sendMultiChannelNotification({
+            userId: block.user_id,
+            type: 'task_starting',
+            title: '🚀 Time to Start Task',
+            message: `Your task "${block.task_title}" is scheduled to start ${minutesUntilStart === 0 ? 'now' : `in ${minutesUntilStart} minute${minutesUntilStart === 1 ? '' : 's'}`} at ${startTime}!`,
+            relatedTaskId: block.task_id,
+            relatedPlanId: block.plan_id
+          });
+          
+          console.log(`✅ Sent start reminder for task: ${block.task_title} (User: ${block.name}) - Starts in ${minutesUntilStart} min`);
+        } catch (error) {
+          console.error(`❌ Failed to send start reminder for block ${block.id}:`, error.message);
+        }
+      }
+    } else {
+      console.log('✓ No tasks starting soon');
+    }
+  } catch (error) {
+    console.error('❌ Error checking upcoming plan blocks:', error);
+  }
+};
+
 // Send daily summary (optional - runs at 8 PM)
 const sendDailySummary = async () => {
   try {
@@ -185,7 +256,17 @@ export const startScheduler = () => {
     
     console.log('⏰ Scheduled: Check upcoming deadlines (every 15 minutes)');
     
-    // Job 2: Check overdue tasks every hour
+    // Job 2: Check tasks about to start in plan (every 5 minutes for better timing)
+    planBlocksJob = cron.schedule('*/5 * * * *', () => {
+      checkUpcomingPlanBlocks();
+    }, {
+      scheduled: true,
+      timezone: "America/New_York"
+    });
+    
+    console.log('🚀 Scheduled: Check tasks starting soon (every 5 minutes)');
+    
+    // Job 3: Check overdue tasks every hour
     overdueTasksJob = cron.schedule('0 * * * *', () => {
       checkOverdueTasks();
     }, {
@@ -195,7 +276,7 @@ export const startScheduler = () => {
     
     console.log('🚨 Scheduled: Check overdue tasks (every hour)');
     
-    // Job 3: Send daily summary at 8 PM
+    // Job 4: Send daily summary at 8 PM
     dailySummaryJob = cron.schedule('0 20 * * *', () => {
       sendDailySummary();
     }, {
@@ -229,6 +310,11 @@ export const stopScheduler = () => {
       console.log('✓ Stopped: Upcoming deadlines job');
     }
     
+    if (planBlocksJob) {
+      planBlocksJob.stop();
+      console.log('✓ Stopped: Plan blocks job');
+    }
+    
     if (overdueTasksJob) {
       overdueTasksJob.stop();
       console.log('✓ Stopped: Overdue tasks job');
@@ -249,6 +335,7 @@ export const stopScheduler = () => {
 export const getSchedulerStatus = () => {
   return {
     upcomingDeadlines: upcomingDeadlinesJob ? 'running' : 'stopped',
+    planBlocks: planBlocksJob ? 'running' : 'stopped',
     overdueTasks: overdueTasksJob ? 'running' : 'stopped',
     dailySummary: dailySummaryJob ? 'running' : 'stopped'
   };
@@ -258,6 +345,11 @@ export const getSchedulerStatus = () => {
 export const triggerUpcomingCheck = () => {
   console.log('🔧 Manual trigger: Checking upcoming deadlines...');
   return checkUpcomingDeadlines();
+};
+
+export const triggerPlanBlocksCheck = () => {
+  console.log('🔧 Manual trigger: Checking tasks starting soon...');
+  return checkUpcomingPlanBlocks();
 };
 
 export const triggerOverdueCheck = () => {
