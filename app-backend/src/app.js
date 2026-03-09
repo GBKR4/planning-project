@@ -21,20 +21,37 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Trust proxy if we are behind a load balancer (e.g. AWS, Heroku, DigitalOcean)
+app.set("trust proxy", 1);
+
 // HTTP Request logging
 app.use(morgan('combined', { stream: logger.stream }));
 
 // Security middleware
 app.use(helmet());
+
+// Dynamic CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"];
+
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
+  },
   credentials: true
 }));
 
-// Rate limiting - Relaxed for development
+// Rate limiting
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1000 // limit each IP to 1000 requests per minute (very relaxed for dev) 
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Limit each IP to 100 requests per 15 mins in production
+  message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use(limiter);
 
