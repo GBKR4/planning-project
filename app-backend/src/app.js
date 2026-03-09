@@ -1,16 +1,18 @@
-import express from "express"; 
+﻿import express from "express"; 
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 import authRoutes from "./routes/auth.routes.js";
 import plansRoutes from "./routes/plans.routes.js";
 import tasksRoutes from "./routes/tasks.routes.js";
-import usersRoutes from "./routes/users.routes.js"; 
+import usersRoutes from "./routes/users.routes.js";
 import busyBlocksRoutes from "./routes/busyBlocks.routes.js";
 import notificationsRoutes from "./routes/notifications.routes.js";
 import cookieParser from "cookie-parser";
 import pool from './db/pool.js';
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import logger from "./utils/logger.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -18,6 +20,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// HTTP Request logging
+app.use(morgan('combined', { stream: logger.stream }));
 
 // Security middleware
 app.use(helmet());
@@ -29,7 +34,7 @@ app.use(cors({
 // Rate limiting - Relaxed for development
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1000 // limit each IP to 1000 requests per minute (very relaxed for dev)
+  max: 1000 // limit each IP to 1000 requests per minute (very relaxed for dev) 
 });
 app.use(limiter);
 
@@ -37,7 +42,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));        
 
 app.use("/", authRoutes);
 app.use("/", plansRoutes);
@@ -50,6 +55,7 @@ app.get("/health", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
     res.json({ db: "ok", time: result.rows[0].now });
   } catch (error) {
+    logger.error("Health check failed: " + error.message);
     res.status(500).json({ success: false, message: "Database connection failed" });
   }
 });

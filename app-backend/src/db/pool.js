@@ -1,5 +1,6 @@
-import pkg from "pg";
+﻿import pkg from "pg";
 import dotenv from "dotenv";
+import logger from "../utils/logger.js";
 
 // Load environment variables FIRST
 dotenv.config();
@@ -21,18 +22,18 @@ const config = {
 const pool = new Pool(config);
 
 pool.on("error", (err) => {
-  console.error("Database connection error:", err.message);
-  console.error("Please ensure PostgreSQL is running and credentials are correct");
+  logger.error(`Database connection error: ${err.message}`, { stack: err.stack });
+  logger.info("Please ensure PostgreSQL is running and credentials are correct");
   // Don't exit - let the app handle errors
 });
 
 // Test connection on startup
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('❌ Database connection failed:', err.message);
-    console.error('Server will run but database operations will fail');
+    logger.error(`Database connection failed: ${err.message}`);
+    logger.warn('Server will run but database operations will fail');
   } else {
-    console.log('✅ Database connected successfully');
+    logger.info('Database connected successfully');
   }
 });
 

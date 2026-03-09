@@ -1,3 +1,5 @@
+﻿import logger from "../utils/logger.js";
+
 // Custom error class
 export class AppError extends Error {
   constructor(message, statusCode) {
@@ -28,10 +30,11 @@ export const errorHandler = (err, req, res, next) => {
   error.statusCode = err.statusCode || 500;
 
   // Log error for debugging
-  console.error('Error:', {
-    message: err.message,
+  logger.error(`Error: ${err.message}`, {
     stack: err.stack,
-    statusCode: error.statusCode
+    statusCode: error.statusCode,
+    path: req.originalUrl,
+    method: req.method
   });
 
   // PostgreSQL specific errors
