@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BellIcon } from '@heroicons/react/24/outline';
-import { BellIcon as BellSolidIcon } from '@heroicons/react/24/solid';
+import { IoNotificationsOutline, IoNotifications } from 'react-icons/io5';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationDropdown from './NotificationDropdown';
 
@@ -48,18 +47,18 @@ const NotificationBell = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleToggle}
-        className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
+        className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
         aria-label="Notifications"
         title="Notifications"
       >
         {unreadCount > 0 ? (
-          <BellSolidIcon className="h-6 w-6 text-purple-600" />
+          <IoNotifications className="text-2xl text-gray-900" />
         ) : (
-          <BellIcon className="h-6 w-6" />
+          <IoNotificationsOutline className="text-2xl" />
         )}
         
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 flex items-center justify-center h-5 w-5 text-xs font-bold text-white bg-red-500 rounded-full transform translate-x-1 -translate-y-1">
+          <span className="absolute top-0 right-0 flex items-center justify-center h-5 w-5 text-xs font-semibold text-white bg-gray-900 rounded-full">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

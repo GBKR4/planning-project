@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { MdClose, MdSchedule, MdWarning, MdCalendarToday, MdCheckCircle, MdAssessment, MdCoffeeMaker, MdWavingHand, MdStar } from 'react-icons/md';
+import { IoMdAlert } from 'react-icons/io';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,19 +9,19 @@ const NotificationItem = ({ notification, onClick }) => {
   const navigate = useNavigate();
 
   const getNotificationIcon = (type) => {
-    const icons = {
-      'task_reminder': '⏰',
-      'task_overdue': '🚨',
-      'plan_created': '📅',
-      'schedule_conflict': '⚠️',
-      'deadline_approaching': '🔥',
-      'task_completed': '✅',
-      'daily_summary': '📊',
-      'break_reminder': '☕',
-      'welcome': '👋',
-      'motivational': '🌟'
+    const iconMap = {
+      'task_reminder': <MdSchedule className="text-gray-600" />,
+      'task_overdue': <IoMdAlert className="text-gray-700" />,
+      'plan_created': <MdCalendarToday className="text-gray-600" />,
+      'schedule_conflict': <MdWarning className="text-gray-600" />,
+      'deadline_approaching': <MdWarning className="text-gray-700" />,
+      'task_completed': <MdCheckCircle className="text-gray-600" />,
+      'daily_summary': <MdAssessment className="text-gray-600" />,
+      'break_reminder': <MdCoffeeMaker className="text-gray-600" />,
+      'welcome': <MdWavingHand className="text-gray-600" />,
+      'motivational': <MdStar className="text-gray-600" />
     };
-    return icons[type] || '📬';
+    return iconMap[type] || <MdSchedule className="text-gray-600" />;
   };
 
   const handleClick = () => {
@@ -48,13 +49,13 @@ const NotificationItem = ({ notification, onClick }) => {
   return (
     <div
       onClick={handleClick}
-      className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 group ${
-        !notification.read ? 'bg-purple-50' : ''
+      className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors group ${
+        !notification.read ? 'bg-gray-100' : ''
       }`}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <div className="flex-shrink-0 text-2xl mt-0.5">
+        <div className="flex-shrink-0 text-xl mt-0.5">
           {getNotificationIcon(notification.type)}
         </div>
 
@@ -69,7 +70,7 @@ const NotificationItem = ({ notification, onClick }) => {
                 {notification.message}
               </p>
               {notification.task_title && (
-                <p className="text-xs text-purple-600 mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Task: {notification.task_title}
                 </p>
               )}
@@ -78,10 +79,10 @@ const NotificationItem = ({ notification, onClick }) => {
             {/* Delete button */}
             <button
               onClick={handleDelete}
-              className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600 rounded transition-all duration-200"
+              className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-gray-900 rounded transition-all"
               title="Delete notification"
             >
-              <XMarkIcon className="h-4 w-4" />
+              <MdClose className="text-base" />
             </button>
           </div>
 
@@ -91,7 +92,7 @@ const NotificationItem = ({ notification, onClick }) => {
               {timeAgo}
             </time>
             {!notification.read && (
-              <span className="inline-block h-2 w-2 rounded-full bg-purple-600" title="Unread" />
+              <span className="inline-block h-2 w-2 rounded-full bg-gray-900" title="Unread" />
             )}
           </div>
         </div>

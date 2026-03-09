@@ -1,19 +1,32 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
+import { MdCalendarMonth, MdOutlineSchedule } from 'react-icons/md';
 import Layout from '../components/layout/Layout';
 import { PlannerPageSkeleton } from '../components/common/SkeletonLoader';
 import { usePlan, useGeneratePlan, useMarkBlockDone, useMarkBlockMissed } from '../hooks/usePlans';
 import { useTasks } from '../hooks/useTasks';
 import { useBusyBlocks } from '../hooks/useBusyBlocks';
-import { format } from 'date-fns';
-import { PRIORITY_COLORS, DEFAULT_WORK_START, DEFAULT_WORK_END } from '../utils/constants';
+import { DEFAULT_WORK_END, DEFAULT_WORK_START } from '../utils/constants';
 import CalendarView from '../components/planner/CalendarView';
-import { CalendarIcon, ListBulletIcon } from '@heroicons/react/24/outline';
+
+const VIEW_OPTIONS = [
+  { value: 'timeline', label: 'Timeline' },
+  { value: 'calendar', label: 'Calendar' },
+];
+
+const getPriorityTone = (priority) => {
+  if (priority >= 5) return 'bg-gray-900 text-white';
+  if (priority === 4) return 'bg-gray-800 text-white';
+  if (priority === 3) return 'bg-gray-700 text-white';
+  if (priority === 2) return 'bg-gray-200 text-gray-800';
+  return 'bg-gray-100 text-gray-700';
+};
 
 const Planner = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [workStart, setWorkStart] = useState(DEFAULT_WORK_START);
   const [workEnd, setWorkEnd] = useState(DEFAULT_WORK_END);
-  const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'calendar'
+  const [viewMode, setViewMode] = useState('timeline');
 
   const { data: plan, isLoading: planLoading } = usePlan(selectedDate);
   const { data: tasks } = useTasks({ status: 'todo' });
@@ -23,334 +36,231 @@ const Planner = () => {
   const markBlockMissed = useMarkBlockMissed();
 
   const handleGeneratePlan = async () => {
-    await generatePlan.mutateAsync({
-      date: selectedDate,
-      workStart,
-      workEnd,
-    });
-  };
-
-  const handleMarkDone = async (blockId) => {
-    await markBlockDone.mutateAsync(blockId);
+    await generatePlan.mutateAsync({ date: selectedDate, workStart, workEnd });
   };
 
   const handleMarkMissed = async (blockId) => {
-    if (window.confirm('Mark this block as missed? The task will be rescheduled for future plans.')) {
+    if (window.confirm('Mark this block as missed? The task will be rescheduled in future plans.')) {
       await markBlockMissed.mutateAsync(blockId);
     }
   };
 
-  const unscheduledTasks = tasks?.filter(
-    task => !plan?.blocks?.some(block => block.task_id === task.id)
-  ) || [];
+  const unscheduledTasks = tasks?.filter((task) => !plan?.blocks?.some((block) => block.task_id === task.id)) || [];
 
-  const handleSelectEvent = (event) => {
-    if (event.resource.type === 'task') {
-      // Show block details or actions
-      console.log('Selected block:', event);
-    }
-  };
-
-  // Helper function to check if block time has passed
-  const isBlockPast = (endTime) => {
-    return new Date(endTime) < new Date();
-  };
-
-  // Helper function to check if block is currently active
+  const isBlockPast = (endTime) => new Date(endTime) < new Date();
   const isBlockActive = (startTime, endTime) => {
     const now = new Date();
     return new Date(startTime) <= now && now <= new Date(endTime);
   };
 
-  const handleNavigate = (date) => {
-    setSelectedDate(format(date, 'yyyy-MM-dd'));
-  };
+  if (planLoading) {
+    return (
+      <Layout>
+        <PlannerPageSkeleton />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header with Rainbow Gradient */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 rounded-2xl p-8 shadow-2xl">
-          <div className="relative z-10 flex items-center justify-between">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white flex items-center space-x-3 drop-shadow-lg">
-                <span className="animate-bounce">📅</span>
-                <span>Daily Planner</span>
-              </h1>
-              <p className="mt-2 text-white text-lg drop-shadow-md">Generate and manage your daily task schedule</p>
+              <p className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">Scheduling</p>
+              <h1 className="mt-2 text-3xl font-semibold text-gray-900">Planner</h1>
+              <p className="mt-2 max-w-2xl text-sm text-gray-600">
+                Generate a realistic plan, review scheduled work, and track what still needs time.
+              </p>
             </div>
-            
-            {/* View Toggle */}
-            {plan && (
-              <div className="flex space-x-2 bg-white/30 backdrop-blur-md rounded-xl p-1.5 shadow-lg">
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+              {VIEW_OPTIONS.map((option) => (
                 <button
-                  onClick={() => setViewMode('timeline')}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-lg transition-all duration-300 font-bold ${
-                    viewMode === 'timeline'
-                      ? 'bg-white text-purple-600 shadow-xl scale-110 border-2 border-white'
-                      : 'text-white hover:bg-white/20 backdrop-blur-sm'
+                  key={option.value}
+                  onClick={() => setViewMode(option.value)}
+                  className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                    viewMode === option.value ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <ListBulletIcon className="h-5 w-5" />
-                  <span>Timeline</span>
+                  {option.label}
                 </button>
-                <button
-                  onClick={() => setViewMode('calendar')}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-lg transition-all duration-300 font-bold ${
-                    viewMode === 'calendar'
-                      ? 'bg-white text-purple-600 shadow-xl scale-110 border-2 border-white'
-                      : 'text-white hover:bg-white/20 backdrop-blur-sm'
-                  }`}
-                >
-                  <CalendarIcon className="h-5 w-5" />
-                  <span>Calendar</span>
-                </button>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-40 w-40 rounded-full bg-yellow-300 opacity-20 blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-40 w-40 rounded-full bg-pink-300 opacity-20 blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 right-1/4 h-32 w-32 rounded-full bg-cyan-300 opacity-15 blur-3xl"></div>
-        </div>
+        </section>
 
-        {/* Plan Generator with Colorful Design */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-purple-200/50 p-10 hover:shadow-3xl transition-all duration-300">
-          <h2 className="text-3xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-8 flex items-center space-x-3">
-            <span className="text-4xl animate-float">🎯</span>
-            <span>Generate Plan</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-2">
-                <span className="text-lg">📅</span>
-                <span>Date</span>
-              </label>
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">Generate Plan</h2>
+          <div className="mt-4 grid gap-4 md:grid-cols-4">
+            <label className="block text-sm text-gray-600">
+              <span className="mb-2 block font-medium text-gray-700">Date</span>
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-5 py-4 border-2 border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 hover:border-purple-400 bg-gray-50 hover:bg-white font-semibold shadow-sm hover:shadow-md"
+                onChange={(event) => setSelectedDate(event.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 outline-none transition-colors focus:border-gray-500"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-2">
-                <span className="text-lg">🌅</span>
-                <span>Work Start</span>
-              </label>
+            </label>
+            <label className="block text-sm text-gray-600">
+              <span className="mb-2 block font-medium text-gray-700">Work Start</span>
               <input
                 type="time"
                 value={workStart}
-                onChange={(e) => setWorkStart(e.target.value)}
-                className="w-full px-5 py-4 border-2 border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 hover:border-purple-400 bg-gray-50 hover:bg-white font-semibold shadow-sm hover:shadow-md"
+                onChange={(event) => setWorkStart(event.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 outline-none transition-colors focus:border-gray-500"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center space-x-2">
-                <span className="text-lg">🌆</span>
-                <span>Work End</span>
-              </label>
+            </label>
+            <label className="block text-sm text-gray-600">
+              <span className="mb-2 block font-medium text-gray-700">Work End</span>
               <input
                 type="time"
                 value={workEnd}
-                onChange={(e) => setWorkEnd(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-400 bg-white shadow-sm"
+                onChange={(event) => setWorkEnd(event.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 outline-none transition-colors focus:border-gray-500"
               />
-            </div>
+            </label>
             <div className="flex items-end">
               <button
                 onClick={handleGeneratePlan}
                 disabled={generatePlan.isPending}
-                className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-xl hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center space-x-2"
+                className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="text-xl">🎯</span>
-                <span>{generatePlan.isPending ? 'Generating...' : 'Generate Plan'}</span>
+                {generatePlan.isPending ? 'Generating...' : 'Generate Plan'}
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Plan View */}
-        {planLoading ? (
-          <PlannerPageSkeleton />
-        ) : plan ? (
+        {!plan ? (
+          <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-16 text-center shadow-sm">
+            <p className="text-lg font-medium text-gray-900">No plan generated yet</p>
+            <p className="mt-2 text-sm text-gray-500">Pick a date and generate a schedule to begin.</p>
+          </section>
+        ) : (
           <>
-            {/* Calendar View */}
             {viewMode === 'calendar' && (
               <CalendarView
                 blocks={plan.blocks || []}
-                busyBlocks={plan.busyBlocks || []}
-                onSelectEvent={handleSelectEvent}
+                busyBlocks={plan.busyBlocks || busyBlocks || []}
+                onSelectEvent={() => {}}
                 selectedDate={selectedDate}
-                onNavigate={handleNavigate}
+                onNavigate={(date) => setSelectedDate(format(date, 'yyyy-MM-dd'))}
               />
             )}
 
-            {/* Timeline View */}
             {viewMode === 'timeline' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Scheduled Blocks */}
-                <div className="lg:col-span-2 space-y-6">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                📅 Schedule for {format(new Date(selectedDate), 'MMMM dd, yyyy')}
-              </h2>
-              {plan.blocks && plan.blocks.length > 0 ? (
-                <div className="space-y-3">
-                  {plan.blocks
-                    .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
-                    .map((block) => {
-                      const isPast = isBlockPast(block.end_at);
-                      const isActive = isBlockActive(block.start_at, block.end_at);
-                      const shouldPrompt = block.status === 'scheduled' && isPast;
-                      
-                      return (
-                      <div
-                        key={block.id}
-                        className={`group bg-white rounded-2xl shadow-lg border-l-[6px] p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-                          block.status === 'done'
-                            ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50'
-                            : block.status === 'missed'
-                            ? 'border-red-500 bg-gradient-to-r from-red-50 to-pink-50'
-                            : isActive
-                            ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 ring-4 ring-blue-200'
-                            : shouldPrompt
-                            ? 'border-yellow-500 bg-gradient-to-r from-yellow-50 to-amber-50'
-                            : 'border-indigo-500 hover:border-purple-500'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 flex-wrap">
-                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
-                                {block.task_title}
-                              </h3>
-                              <span className={`px-3 py-1 text-xs font-bold rounded-full ${PRIORITY_COLORS[block.priority] || 'bg-gray-100 text-gray-800'}`}>
-                                🎯 P{block.priority}
-                              </span>
-                              {block.status === 'done' && (
-                                <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-full shadow-sm">
-                                  ✓ Done
-                                </span>
-                              )}
-                              {block.status === 'missed' && (
-                                <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-red-400 to-red-500 text-white rounded-full shadow-sm">
-                                  ✗ Missed
-                                </span>
-                              )}
-                              {isActive && block.status === 'scheduled' && (
-                                <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-full animate-pulse shadow-sm">
-                                  ⏳ In Progress
-                                </span>
-                              )}
-                              {shouldPrompt && (
-                                <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full shadow-sm">
-                                  ⚠️ Time Elapsed
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-6 mt-3 text-sm font-medium text-gray-600">
-                              <span className="flex items-center space-x-1.5">
-                                <span>🕐</span>
-                                <span>{format(new Date(block.start_at), 'HH:mm')} - {format(new Date(block.end_at), 'HH:mm')}</span>
-                              </span>
-                              <span className="flex items-center space-x-1.5">
-                                <span>⏱️</span>
-                                <span>{block.estimated_minutes}m</span>
-                              </span>
-                            </div>
-                          </div>
+              <div className="grid gap-6 lg:grid-cols-3">
+                <section className="space-y-4 lg:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Schedule for {format(new Date(selectedDate), 'MMMM dd, yyyy')}
+                    </h2>
+                    <span className="text-sm text-gray-500">{plan.blocks?.length || 0} scheduled block(s)</span>
+                  </div>
 
-                          {/* Action Buttons */}
-                          {block.status === 'scheduled' && (
-                            <div className="flex flex-col space-y-3">
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleMarkDone(block.id)}
-                                  className={`px-4 py-2 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg ${
-                                    shouldPrompt 
-                                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 ring-2 ring-green-300 animate-pulse' 
-                                      : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
-                                  }`}
-                                >
-                                  ✓ Done
-                                </button>
-                                <button
-                                  onClick={() => handleMarkMissed(block.id)}
-                                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg"
-                                >
-                                  ✗ Missed
-                                </button>
+                  {plan.blocks && plan.blocks.length > 0 ? (
+                    <div className="space-y-3">
+                      {plan.blocks
+                        .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
+                        .map((block) => {
+                          const isPast = isBlockPast(block.end_at);
+                          const isActive = isBlockActive(block.start_at, block.end_at);
+                          const shouldPrompt = block.status === 'scheduled' && isPast;
+
+                          return (
+                            <article key={block.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="text-lg font-semibold text-gray-900">{block.task_title}</h3>
+                                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getPriorityTone(block.priority)}`}>
+                                      Priority {block.priority}
+                                    </span>
+                                    {block.status === 'done' && <span className="rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-800">Done</span>}
+                                    {block.status === 'missed' && <span className="rounded-full bg-gray-300 px-2.5 py-1 text-xs font-medium text-gray-900">Missed</span>}
+                                    {isActive && block.status === 'scheduled' && (
+                                      <span className="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-medium text-white">In progress</span>
+                                    )}
+                                    {shouldPrompt && (
+                                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">Needs update</span>
+                                    )}
+                                  </div>
+                                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
+                                      <MdCalendarMonth className="text-base" />
+                                      {format(new Date(block.start_at), 'HH:mm')} - {format(new Date(block.end_at), 'HH:mm')}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
+                                      <MdOutlineSchedule className="text-base" />
+                                      {block.estimated_minutes} min
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {block.status === 'scheduled' && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => markBlockDone.mutateAsync(block.id)}
+                                      className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                                    >
+                                      Done
+                                    </button>
+                                    <button
+                                      onClick={() => handleMarkMissed(block.id)}
+                                      className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                    >
+                                      Missed
+                                    </button>
+                                  </div>
+                                )}
                               </div>
-                              {shouldPrompt && (
-                                <span className="text-xs font-medium text-yellow-700 text-center">
-                                  Mark status to update
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                  <p className="text-gray-500">No blocks scheduled for this date</p>
-                  <p className="text-sm text-gray-400 mt-2">Generate a plan to get started</p>
-                </div>
-              )}
-            </div>
+                            </article>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
+                      <p className="text-gray-700">No blocks scheduled for this date.</p>
+                    </div>
+                  )}
+                </section>
 
-            {/* Unscheduled Tasks */}
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                📋 Unscheduled Tasks ({unscheduledTasks.length})
-              </h2>
-              {unscheduledTasks.length > 0 ? (
-                <div className="space-y-3">
-                  {unscheduledTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="group bg-white rounded-xl shadow-md border-l-4 border-purple-400 p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-pink-500"
-                    >
-                      <div className="flex items-start space-x-3">
-                        <span className={`px-3 py-1 text-xs font-bold rounded-full ${PRIORITY_COLORS[task.priority] || 'bg-gray-100 text-gray-800'}`}>
-                          🎯 P{task.priority}
-                        </span>
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                            {task.title}
-                          </h4>
-                          <div className="flex items-center space-x-3 mt-2 text-xs font-medium text-gray-500">
-                            <span className="flex items-center space-x-1">
-                              <span>⏱️</span>
-                              <span>{task.estimated_minutes}m</span>
+                <aside className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-gray-900">Unscheduled Tasks</h2>
+                    <span className="text-sm text-gray-500">{unscheduledTasks.length}</span>
+                  </div>
+
+                  {unscheduledTasks.length > 0 ? (
+                    <div className="space-y-3">
+                      {unscheduledTasks.map((task) => (
+                        <article key={task.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-sm font-semibold text-gray-900">{task.title}</h3>
+                            <span className={`rounded-full px-2 py-1 text-[11px] font-medium ${getPriorityTone(task.priority)}`}>
+                              P{task.priority}
                             </span>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+                            <span className="rounded-full bg-gray-100 px-2.5 py-1">{task.estimated_minutes} min</span>
                             {task.deadline_at && (
-                              <span className="flex items-center space-x-1">
-                                <span>📅</span>
-                                <span>{format(new Date(task.deadline_at), 'MMM dd')}</span>
+                              <span className="rounded-full bg-gray-100 px-2.5 py-1">
+                                Due {format(new Date(task.deadline_at), 'MMM dd')}
                               </span>
                             )}
                           </div>
-                        </div>
-                      </div>
+                        </article>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500 text-sm">All tasks scheduled!</p>
-                </div>
-              )}
-                </div>
+                  ) : (
+                    <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+                      <p className="text-sm text-gray-500">All tasks are scheduled.</p>
+                    </div>
+                  )}
+                </aside>
               </div>
             )}
           </>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <p className="text-gray-500 text-lg">No plan generated yet</p>
-            <p className="text-sm text-gray-400 mt-2">Select a date and generate your plan</p>
-          </div>
         )}
       </div>
     </Layout>

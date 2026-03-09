@@ -1,18 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNotificationPreferences, usePushNotifications } from '../../hooks/useNotifications';
-import LoadingSpinner from '../common/LoadingSpinner';
 import Button from '../common/Button';
+import LoadingSpinner from '../common/LoadingSpinner';
+
+const ToggleOption = ({ label, description, checked, onChange }) => (
+  <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+    <div>
+      <p className="text-sm font-medium text-gray-900">{label}</p>
+      <p className="text-sm text-gray-500">{description}</p>
+    </div>
+    <label className="relative inline-flex cursor-pointer items-center">
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="peer sr-only" />
+      <div className="h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-200 after:bg-white after:transition-all peer-checked:bg-gray-900 peer-checked:after:translate-x-full" />
+    </label>
+  </div>
+);
 
 const NotificationPreferences = () => {
   const { preferences, isLoading, updatePreferences, isUpdating } = useNotificationPreferences();
-  const { 
-    isSupported, 
-    isSubscribed, 
-    permission, 
-    subscribe, 
-    unsubscribe, 
+  const {
+    isSupported,
+    isSubscribed,
+    permission,
+    subscribe,
+    unsubscribe,
     isSubscribing,
-    isUnsubscribing 
+    isUnsubscribing,
   } = usePushNotifications();
 
   const [formData, setFormData] = useState({
@@ -22,7 +35,7 @@ const NotificationPreferences = () => {
     overdue_alerts: true,
     plan_updates: true,
     schedule_conflicts: true,
-    reminder_time_minutes: 30
+    reminder_time_minutes: 30,
   });
 
   useEffect(() => {
@@ -34,26 +47,26 @@ const NotificationPreferences = () => {
         overdue_alerts: preferences.overdue_alerts ?? true,
         plan_updates: preferences.plan_updates ?? true,
         schedule_conflicts: preferences.schedule_conflicts ?? true,
-        reminder_time_minutes: preferences.reminder_time_minutes ?? 30
+        reminder_time_minutes: preferences.reminder_time_minutes ?? 30,
       });
     }
   }, [preferences]);
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((previous) => ({ ...previous, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     updatePreferences(formData);
   };
 
   const handlePushToggle = () => {
     if (isSubscribed) {
       unsubscribe();
-    } else {
-      subscribe();
+      return;
     }
+    subscribe();
   };
 
   if (isLoading) {
@@ -65,151 +78,101 @@ const NotificationPreferences = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Notification Preferences
-      </h2>
+    <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 className="text-xl font-semibold text-gray-900">Notification Preferences</h2>
 
-      {/* Helpful Banner for Push Notifications */}
       {isSupported && !isSubscribed && permission === 'default' && (
-        <div className="mb-6 p-4 bg-purple-50 border-l-4 border-purple-600 rounded-lg">
-          <div className="flex items-start">
-            <span className="text-2xl mr-3">💡</span>
-            <div>
-              <h4 className="font-semibold text-purple-900 mb-1">
-                Enable Push Notifications
-              </h4>
-              <p className="text-sm text-purple-800">
-                Get notified about tasks and deadlines even when the app is closed. 
-                Click the "Enable" button below to turn on push notifications.
-              </p>
-            </div>
-          </div>
+        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <p className="text-sm font-medium text-gray-900">Enable push notifications</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Receive reminders in the browser even when the app is not the active tab.
+          </p>
         </div>
       )}
 
       {permission === 'denied' && (
-        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-lg">
-          <div className="flex items-start">
-            <span className="text-2xl mr-3">⚠️</span>
-            <div>
-              <h4 className="font-semibold text-red-900 mb-1">
-                Push Notifications Blocked
-              </h4>
-              <p className="text-sm text-red-800">
-                You've blocked push notifications for this site. To enable them:
-                <br />1. Click the lock icon in your browser's address bar
-                <br />2. Find "Notifications" and change it to "Allow"
-                <br />3. Refresh the page and click "Enable" below
-              </p>
-            </div>
-          </div>
+        <div className="mt-4 rounded-xl border border-gray-300 bg-gray-100 p-4">
+          <p className="text-sm font-medium text-gray-900">Push notifications are blocked</p>
+          <p className="mt-1 text-sm text-gray-600">
+            Update your browser site permissions to allow notifications, then reload this page.
+          </p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Channels Section */}
+      <form onSubmit={handleSubmit} className="mt-6 space-y-8">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Notification Channels
-          </h3>
-          <div className="space-y-4">
-            {/* Email Notifications */}
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  📧 Email Notifications
-                </label>
-                <p className="text-sm text-gray-500">
-                  Receive notifications via email
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.email_enabled}
-                  onChange={(e) => handleChange('email_enabled', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-              </label>
-            </div>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-gray-500">Channels</h3>
+          <div className="mt-4 space-y-4">
+            <ToggleOption
+              label="Email Notifications"
+              description="Receive important updates by email."
+              checked={formData.email_enabled}
+              onChange={(checked) => handleChange('email_enabled', checked)}
+            />
 
-            {/* Push Notifications */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  🔔 Push Notifications
-                </label>
+                <p className="text-sm font-medium text-gray-900">Push Notifications</p>
                 <p className="text-sm text-gray-500">
-                  Receive push notifications in your browser
-                  {!isSupported && ' (Not supported in this browser)'}
-                  {permission === 'denied' && ' (Permission denied)'}
+                  {!isSupported
+                    ? 'This browser does not support push notifications.'
+                    : permission === 'denied'
+                      ? 'Permission is currently denied.'
+                      : 'Receive reminders in your browser.'}
                 </p>
               </div>
               {isSupported && (
-                <button
+                <Button
                   type="button"
                   onClick={handlePushToggle}
                   disabled={isSubscribing || isUnsubscribing || permission === 'denied'}
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  size="sm"
                 >
                   {isSubscribing || isUnsubscribing ? 'Loading...' : isSubscribed ? 'Disable' : 'Enable'}
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Notification Types Section */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Notification Types
-          </h3>
-          <div className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-gray-500">Notification Types</h3>
+          <div className="mt-4 space-y-4">
             <ToggleOption
-              label="⏰ Task Reminders"
-              description="Get reminded before task deadlines"
+              label="Task Reminders"
+              description="Remind me before task deadlines."
               checked={formData.task_reminders}
               onChange={(checked) => handleChange('task_reminders', checked)}
             />
-
             <ToggleOption
-              label="🚨 Overdue Alerts"
-              description="Be notified when tasks become overdue"
+              label="Overdue Alerts"
+              description="Tell me when tasks become overdue."
               checked={formData.overdue_alerts}
               onChange={(checked) => handleChange('overdue_alerts', checked)}
             />
-
             <ToggleOption
-              label="📅 Plan Updates"
-              description="Get notified when daily plans are created"
+              label="Plan Updates"
+              description="Notify me when daily plans are generated."
               checked={formData.plan_updates}
               onChange={(checked) => handleChange('plan_updates', checked)}
             />
-
             <ToggleOption
-              label="⚠️ Schedule Conflicts"
-              description="Alert me about scheduling conflicts"
+              label="Schedule Conflicts"
+              description="Warn me about overlapping commitments."
               checked={formData.schedule_conflicts}
               onChange={(checked) => handleChange('schedule_conflicts', checked)}
             />
           </div>
         </div>
 
-        {/* Reminder Timing Section */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Reminder Timing
-          </h3>
-          <div className="max-w-md">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Remind me before deadline
-            </label>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-gray-500">Timing</h3>
+          <div className="mt-4 max-w-sm">
+            <label className="mb-2 block text-sm font-medium text-gray-700">Remind me before deadline</label>
             <select
               value={formData.reminder_time_minutes}
-              onChange={(e) => handleChange('reminder_time_minutes', parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              onChange={(event) => handleChange('reminder_time_minutes', parseInt(event.target.value, 10))}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition-colors focus:border-gray-500"
             >
               <option value={15}>15 minutes</option>
               <option value={30}>30 minutes</option>
@@ -220,39 +183,11 @@ const NotificationPreferences = () => {
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end pt-4 border-t">
-          <Button
-            type="submit"
-            disabled={isUpdating}
-            className="px-6 py-2"
-          >
-            {isUpdating ? 'Saving...' : 'Save Preferences'}
-          </Button>
+        <div className="flex justify-end">
+          <Button type="submit" loading={isUpdating}>Save Preferences</Button>
         </div>
       </form>
-    </div>
-  );
-};
-
-// Helper component for toggle options
-const ToggleOption = ({ label, description, checked, onChange }) => {
-  return (
-    <div className="flex items-center justify-between">
-      <div>
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <p className="text-sm text-gray-500">{description}</p>
-      </div>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="sr-only peer"
-        />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-      </label>
-    </div>
+    </section>
   );
 };
 
