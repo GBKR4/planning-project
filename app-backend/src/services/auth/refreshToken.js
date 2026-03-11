@@ -34,9 +34,10 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   const storedToken = result.rows[0];
 
-  // Generate new tokens
+  // Generate new tokens — include jti so concurrent refreshes within the same
+  // second don't produce identical hashes and violate the UNIQUE constraint.
   const newAccessToken = generateAccessToken({ userId: payload.userId });
-  const newRefreshToken = generateRefreshToken({ userId: payload.userId });
+  const newRefreshToken = generateRefreshToken({ userId: payload.userId, jti: crypto.randomUUID() });
   const newRefreshTokenHash = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
 
   // Update token in database

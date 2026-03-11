@@ -1,5 +1,5 @@
 import { hashPassword, comparePassword } from "../utils/password.js";
-import { generateToken, generateRefreshToken } from "../utils/jwt.js";
+import { generateToken, generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 import pool from "../db/pool.js";
 import { asyncHandler, AppError } from "../middleware/errorHandler.js";
 import crypto from "crypto";
@@ -76,10 +76,12 @@ export const Login = asyncHandler(async (req, res) => {
     }
 
     // Generate access token
-    const token = generateToken({ userId: user.id });
+    const token = generateAccessToken({ userId: user.id });
 
-    // Generate refresh token
-    const refreshToken = generateRefreshToken({ userId: user.id });
+    // Generate refresh token — include jti (unique ID) so that two logins within
+    // the same second don't produce identical JWTs and violate the UNIQUE constraint
+    // on refresh_tokens.token_hash.
+    const refreshToken = generateRefreshToken({ userId: user.id, jti: crypto.randomUUID() });
     const refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
 
     // Store refresh token in database

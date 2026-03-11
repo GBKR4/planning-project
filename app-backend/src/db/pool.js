@@ -1,4 +1,4 @@
-﻿import pkg from "pg";
+import pkg from "pg";
 import dotenv from "dotenv";
 import logger from "../utils/logger.js";
 
@@ -14,9 +14,11 @@ const config = {
   password: String(process.env.DB_PASSWORD || ''),
   database: process.env.DB_NAME || 'planning-project',
   port: parseInt(process.env.DB_PORT || '5432', 10),
-  max: 10,
+  // PostgreSQL default max_connections=100; reserve ~10 for superuser/monitoring.
+  // Formula: Math.min(configured, pgMaxConnections - 10)
+  max: parseInt(process.env.DB_POOL_MAX || '90', 10),
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000,
 };
 
 const pool = new Pool(config);

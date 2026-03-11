@@ -343,7 +343,10 @@ async function regeneratePlan(userId, date, missedBlockId) {
     const missedBlock = missedBlockResult.rows[0];
     
     if (!missedBlock) {
-      throw new Error('Missed block not found');
+      // The block was deleted by a concurrent generatePlan call — the plan has
+      // already been regenerated, so no further action is needed.
+      await pool.query('ROLLBACK');
+      return;
     }
 
     // mark missed

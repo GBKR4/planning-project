@@ -10,12 +10,17 @@ export const addDailyPlan = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "plan_date is required" });
   }
 
-  const result = await pool.query(`INSERT INTO plans (user_id,plan_date,work_start,work_end) VALUES ($1,$2,$3,$4) RETURNING *`, [
-    userId,
-    plan_date,
-    work_start || "09:00",
-    work_end || "22:00"
-  ]);
+  const result = await pool.query(
+    `INSERT INTO plans (user_id,plan_date,work_start,work_end)
+     VALUES ($1,$2,$3,$4)
+     ON CONFLICT (user_id, plan_date) DO NOTHING
+     RETURNING *`,
+    [userId, plan_date, work_start || "09:00", work_end || "22:00"]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(409).json({ message: "Plan already exists for this date" });
+  }
 
   res.status(201).json(result.rows[0]);
 });
@@ -59,25 +64,21 @@ export const generatePlan = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "date is required" });
   }
 
-  // Check if plan already exists
-  const existingPlan = await pool.query(
-    "SELECT id FROM plans WHERE user_id = $1 AND plan_date = $2",
-    [userId, date]
+  // UPSERT the plan row atomically — avoids a race condition where two concurrent
+  // requests both find no existing plan and both try to INSERT, triggering a
+  // UNIQUE (user_id, plan_date) violation.
+  const upsertPlan = await pool.query(
+    `INSERT INTO plans (user_id, plan_date, work_start, work_end)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (user_id, plan_date)
+     DO UPDATE SET work_start = EXCLUDED.work_start, work_end = EXCLUDED.work_end
+     RETURNING id`,
+    [userId, date, workStart || "09:00", workEnd || "22:00"]
   );
+  const planId = upsertPlan.rows[0].id;
 
-  let planId;
-  if (existingPlan.rowCount > 0) {
-    planId = existingPlan.rows[0].id;
-    // Delete existing blocks to regenerate
-    await pool.query("DELETE FROM plan_blocks WHERE plan_id = $1", [planId]);
-  } else {
-    // Create new plan
-    const newPlan = await pool.query(
-      "INSERT INTO plans (user_id, plan_date, work_start, work_end) VALUES ($1, $2, $3, $4) RETURNING id",
-      [userId, date, workStart || "09:00", workEnd || "22:00"]
-    );
-    planId = newPlan.rows[0].id;
-  }
+  // Delete existing blocks so we regenerate from scratch
+  await pool.query("DELETE FROM plan_blocks WHERE plan_id = $1", [planId]);
 
   // Get plan details
   const plan = await pool.query(
@@ -109,12 +110,17 @@ export const generatePlan = asyncHandler(async (req, res) => {
   for (const slot of assignedSlots) {
     const task = tasks.rows.find(t => t.id === slot.task_id);
     const reason = `Scheduled: ${task?.deadline_at ? 'Deadline ' + new Date(task.deadline_at).toLocaleDateString() : 'Priority ' + task?.priority}`;
-    
-    const result = await pool.query(
-      "INSERT INTO plan_blocks (plan_id, task_id, block_type, start_at, end_at, reason) VALUES ($1, $2, 'task', $3, $4, $5) RETURNING *",
-      [planId, slot.task_id, slot.start, slot.end, reason]
-    );
-    blocks.push(result.rows[0]);
+    try {
+      const result = await pool.query(
+        "INSERT INTO plan_blocks (plan_id, task_id, block_type, start_at, end_at, reason) VALUES ($1, $2, 'task', $3, $4, $5) RETURNING *",
+        [planId, slot.task_id, slot.start, slot.end, reason]
+      );
+      blocks.push(result.rows[0]);
+    } catch (err) {
+      // 23503 = foreign_key_violation: task was deleted between SELECT and INSERT
+      if (err.code === '23503') continue;
+      throw err;
+    }
   }
 
   // Find unscheduled tasks
@@ -262,7 +268,15 @@ export const markBlockMissed = asyncHandler(async (req, res) => {
   });
 
   if (reschedule) {
-    // Delete ALL scheduled blocks in this plan (will reschedule from scratch)
+    // Mark THIS block as missed FIRST so the bulk-delete below (which only
+    // removes status='scheduled') does not also delete the block that
+    // regeneratePlan needs to look up.
+    await pool.query(
+      `UPDATE plan_blocks SET status = 'missed' WHERE id = $1`,
+      [blockId]
+    );
+
+    // Delete all OTHER still-scheduled blocks in this plan
     const deleteResult = await pool.query(
       `DELETE FROM plan_blocks 
        WHERE plan_id = $1 
