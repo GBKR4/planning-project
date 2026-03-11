@@ -13,12 +13,20 @@ export const BUSY_BLOCK_KEYS = {
 };
 
 /**
- * Get all busy blocks
+ * Get all busy blocks, optionally filtered by date (client-side)
+ * @param {string} [date] - Optional date string 'YYYY-MM-DD' to filter blocks
  */
-export const useBusyBlocks = () => {
+export const useBusyBlocks = (date) => {
   return useQuery({
-    queryKey: BUSY_BLOCK_KEYS.lists(),
-    queryFn: getBusyBlocks,
+    queryKey: date ? [...BUSY_BLOCK_KEYS.lists(), date] : BUSY_BLOCK_KEYS.lists(),
+    queryFn: async () => {
+      const blocks = await getBusyBlocks();
+      if (!date) return blocks;
+      return blocks.filter((block) => {
+        const blockDate = new Date(block.start_at).toISOString().slice(0, 10);
+        return blockDate === date;
+      });
+    },
   });
 };
 

@@ -84,7 +84,11 @@ export const useNotifications = () => {
     markAllAsRead: markAllAsReadMutation.mutate,
     deleteNotification: deleteNotificationMutation.mutate,
     isMarkingAsRead: markAsReadMutation.isPending,
-    isDeletingNotification: deleteNotificationMutation.isPending
+    isDeletingNotification: deleteNotificationMutation.isPending,
+    // Pagination stubs — all notifications are loaded in a single page
+    fetchNextPage: () => {},
+    hasNextPage: false,
+    isFetchingNextPage: false,
   };
 };
 

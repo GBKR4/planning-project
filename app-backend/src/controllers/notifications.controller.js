@@ -32,11 +32,11 @@ export const getNotifications = async (req, res) => {
         n.type, 
         n.title,
         n.message, 
-        n.priority,
         n.read,
-        n.read_at,
-        n.related_id,
-        n.related_type,
+        n.related_task_id,
+        n.related_plan_id,
+        n.sent_via_email,
+        n.sent_via_push,
         n.created_at
       FROM notifications n
       WHERE n.user_id = $1 

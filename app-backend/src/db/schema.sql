@@ -63,11 +63,12 @@ CREATE INDEX IF NOT EXISTS idx_blocks_plan ON plan_blocks(plan_id);
 
 -- USERS (auth-related fields)
 ALTER TABLE users
-ADD COLUMN email_verified BOOLEAN DEFAULT FALSE,
-ADD COLUMN verification_token_hash TEXT,
-ADD COLUMN verification_token_expires TIMESTAMPTZ,
-ADD COLUMN reset_token_hash TEXT,
-ADD COLUMN reset_token_expires TIMESTAMPTZ;
+ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS verification_token_hash TEXT,
+ADD COLUMN IF NOT EXISTS verification_token_expires TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS reset_token_hash TEXT,
+ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS profile_photo TEXT;
 
 -- REFRESH TOKENS
 CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -97,7 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE TABLE IF NOT EXISTS notifications (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('task_reminder', 'task_overdue', 'plan_created', 'schedule_conflict', 'deadline_approaching')),
+  type TEXT NOT NULL CHECK (type IN ('task_reminder', 'task_overdue', 'task_starting', 'plan_created', 'schedule_conflict', 'deadline_approaching')),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   related_task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
@@ -131,6 +132,14 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   user_agent TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Update type constraint on existing databases to include task_starting
+DO $$ BEGIN
+  ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check;
+  ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
+    CHECK (type IN ('task_reminder', 'task_overdue', 'task_starting', 'plan_created', 'schedule_conflict', 'deadline_approaching'));
+EXCEPTION WHEN others THEN NULL;
+END $$;
 
 -- NOTIFICATION INDEXES
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);

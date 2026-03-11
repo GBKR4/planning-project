@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     // Create unique filename: userId-timestamp-originalname
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${req.userId}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    cb(null, `${req.user?.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
   }
 });
 

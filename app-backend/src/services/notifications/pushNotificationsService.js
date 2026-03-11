@@ -25,10 +25,10 @@ export const savePushSubscription = async (userId, subscription) => {
   
   try {
     const result = await pool.query(
-      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh_key, auth_key)
+      `INSERT INTO push_subscriptions (user_id, endpoint, keys_p256dh, keys_auth)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (endpoint)
-       DO UPDATE SET user_id = $1, p256dh_key = $3, auth_key = $4
+       DO UPDATE SET user_id = $1, keys_p256dh = $3, keys_auth = $4
        RETURNING *`,
       [userId, endpoint, keys.p256dh, keys.auth]
     );
@@ -90,8 +90,8 @@ export const sendPushToSubscription = async (subscription, payload) => {
   const pushSubscription = {
     endpoint: subscription.endpoint,
     keys: {
-      p256dh: subscription.p256dh_key,
-      auth: subscription.auth_key
+      p256dh: subscription.keys_p256dh,
+      auth: subscription.keys_auth
     }
   };
   
