@@ -1,4 +1,4 @@
-﻿import express from "express"; 
+import express from "express"; 
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -47,13 +47,15 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Limit each IP to 100 requests per 15 mins in production
-  message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
-});
-app.use(limiter);
+// Rate limiting (skip when DISABLE_RATE_LIMIT=true, e.g. for k6 load testing)
+if (process.env.DISABLE_RATE_LIMIT !== 'true') {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: process.env.NODE_ENV === 'production' ? 100 : 1000,
+    message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
+  });
+  app.use(limiter);
+}
 
 app.use(cookieParser());
 app.use(express.json());
