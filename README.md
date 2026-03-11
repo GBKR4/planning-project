@@ -9,6 +9,14 @@ A full-stack web application that helps students plan their day intelligently by
 
 ## ✨ What's New - March 2026
 
+🧪 **Full k6 Load Test Suite** — 4 test files covering every API endpoint with concurrent-load bug fixes and DB pool tuning:
+- Smoke test (2 VUs): 100% checks, 0% failures, p99 = 133ms
+- Auth load (20 VUs): 100% checks, 0% failures, p95 = 606ms
+- API load (50 VUs): 100% checks, 0% failures, p95 = 25ms
+- Stress test (300 VUs): 100% checks, 0% failures — all thresholds pass
+
+🔧 **7 Race Condition & Pool Bug Fixes** — JWT hash collisions, concurrent INSERT races, FK violations, and DB pool exhaustion all resolved (see [Bug Fix Log](#-bug-fix-log))
+
 🔔 **Multi-Channel Notification System** - Production-ready notification system with:
 - Email notifications via Resend API
 - In-app notification center with real-time updates
@@ -21,7 +29,7 @@ A full-stack web application that helps students plan their day intelligently by
 
 🎨 **Enhanced UI** - Improved notification bell, dropdown menu, and user-friendly interfaces
 
-[View Full Changelog](#-features) | [Quick Start](#-quick-start) | [API Docs](#-api-documentation)
+[Load Testing](#-load-testing) | [Bug Fix Log](#-bug-fix-log) | [Quick Start](#-quick-start) | [API Docs](#-api-documentation)
 
 ---
 
@@ -1027,9 +1035,99 @@ When a block is marked as "missed":
 - **XSS Protection**: Helmet security headers
 - **CORS**: Configured for specific origins
 
-## 🧪 Testing
+## 🧪 Load Testing
 
-### Test User Registration & Login
+The project ships with a full [k6](https://k6.io/) load test suite under `k6/`. All tests run against the live backend with a pre-seeded test user.
+
+### Prerequisites
+
+```bash
+# Install k6 (Windows)
+winget install k6
+
+# Linux / macOS
+brew install k6
+
+# Create test user (run once)
+cd app-backend
+node create_test_user.js
+```
+
+### Running the Tests
+
+Start the backend with rate limiting disabled (required for load tests):
+
+```bash
+# Windows PowerShell
+cd app-backend
+$env:DISABLE_RATE_LIMIT="true" ; node src/index.js
+```
+
+Then in a separate terminal:
+
+```bash
+# 1. Smoke test — 2 VUs, 1 min — sanity-check every endpoint
+k6 run k6/api-smoke-test.js
+
+# 2. Auth load — ramps to 20 VUs, 3 min — login/refresh/logout
+k6 run k6/auth-load-test.js
+
+# 3. API load — ramps to 50 VUs, 3 min — full API coverage
+k6 run k6/api-load-test.js
+
+# 4. Stress — ramps to 300 VUs, 5.5 min — breaking-point analysis
+k6 run k6/api-stress-test.js
+```
+
+### Test Results (pool = 90, PostgreSQL max_connections = 100)
+
+| Test | VUs | Duration | Checks | HTTP Failures | Latency |
+|------|-----|----------|--------|---------------|---------|
+| Smoke | 2 | 1 min | ✅ 100% (1989/1989) | ✅ 0.00% | p99 = 133ms |
+| Auth Load | 20 | 3 min | ✅ 100% (10298/10298) | ✅ 0.00% | p95 = 606ms |
+| API Load | 50 | 3 min | ✅ 100% (19314/19314) | ✅ 0.00% | p95 = 25ms |
+| Stress | 300 | 5.5 min | ✅ 100% (47564/47564) | ✅ 0.00% | p99 = 15.82s |
+
+### Thresholds
+
+| Test | Threshold | Result |
+|------|-----------|--------|
+| Smoke | p(99) < 2000ms, error rate < 1% | ✅ Pass |
+| Auth Load | p(95) < 2000ms, error rate < 1% | ✅ Pass |
+| API Load | p(95) < 1000ms, error rate < 1% | ✅ Pass |
+| Stress | p(99) < 20000ms, error rate < 10% | ✅ Pass |
+
+### Capacity Estimate
+
+| Concurrent Users | Behaviour |
+|------------------|-----------|
+| ≤ 150 | Nominal — p95 < 200ms, 0% errors |
+| 150 – 200 | Slight latency increase, still 0% errors |
+| 200 – 300 | Degradation zone — p99 climbs, errors stay < 10% |
+| > 300 | Breaking point — pool saturation |
+
+> To scale beyond 300 VUs: raise PostgreSQL `max_connections` and set `DB_POOL_MAX` env var (keep pool ≤ PG max − 10).
+
+---
+
+## 🐛 Bug Fix Log
+
+All bugs below were discovered and fixed during k6 load testing.
+
+| # | File | Symptom | Root Cause | Fix |
+|---|------|---------|------------|-----|
+| 13 | `auth.controller.js` | 500 on concurrent login | Two logins within the same second produce identical refresh token SHA-256 hashes → UNIQUE violation | Added `jti: crypto.randomUUID()` to refresh token payload |
+| 14 | `refreshToken.js` | 500 on concurrent token refresh | Same hash collision on token rotation | Added `jti: crypto.randomUUID()` on rotation |
+| 15 | `plans.controller.js` | 500 on concurrent plan generate | Two VUs both INSERT a plan row → UNIQUE(user_id, plan_date) | Replaced SELECT+INSERT with atomic `UPSERT … ON CONFLICT DO UPDATE` |
+| 16 | `plans.controller.js` | 500 on mark-missed | `markBlockMissed` bulk-deleted all scheduled blocks (including target) before `regeneratePlan` could read it | Mark target block as `'missed'` first, then delete others |
+| 17 | `plannerEngine.js` | 500 in regeneratePlan | Concurrent `generatePlan` deleted all plan blocks before `regeneratePlan`'s SELECT ran → "Missed block not found" | Gracefully ROLLBACK and return when missed block is already gone |
+| 18 | `plans.controller.js` | 500 on duplicate plan date | `POST /api/plans` crashed on UNIQUE violation instead of returning 409 | `INSERT … ON CONFLICT DO NOTHING` + return 409 |
+| 19 | `pool.js` + `plans.controller.js` | ~9% error rate at 300 VUs across all endpoints | Pool `max=200` exceeded PostgreSQL `max_connections=100` → ECONNRESET on every DB call; also FK violation when a task was deleted mid-plan-generate | Capped pool at 90; catch `error.code === '23503'` on block INSERT and skip |
+
+---
+
+## 🔧 Manual API Testing
+
 ```bash
 # Register
 curl -X POST http://localhost:5000/auth/register \
@@ -1040,10 +1138,7 @@ curl -X POST http://localhost:5000/auth/register \
 curl -X POST http://localhost:5000/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"Test123!"}'
-```
 
-### Test Plan Generation
-```bash
 # Create task
 curl -X POST http://localhost:5000/api/tasks \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -1054,7 +1149,7 @@ curl -X POST http://localhost:5000/api/tasks \
 curl -X POST http://localhost:5000/api/plans/generate \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"date":"2026-01-26","workStart":"09:00","workEnd":"22:00"}'
+  -d '{"date":"2026-03-12","workStart":"09:00","workEnd":"22:00"}'
 ```
 
 ## 🐛 Troubleshooting
