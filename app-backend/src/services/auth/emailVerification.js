@@ -75,11 +75,16 @@ export const resendVerificationEmail = asyncHandler(async (req, res) => {
   // Send verification email
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-  await sendEmail({
-    to: email,
-    subject: "Verify Your Email",
-    text: `Please verify your email by clicking on the following link: ${verificationLink}`,
-  });
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Verify Your Email",
+      text: `Please verify your email by clicking on the following link: ${verificationLink}`,
+    });
+  } catch (emailError) {
+    console.error('⚠️ Failed to send verification email:', emailError.message);
+    return res.status(500).json({ message: "Failed to send verification email. Please try again later." });
+  }
 
   res.json({ message: "Verification email has been resent" });
 });

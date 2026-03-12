@@ -34,14 +34,19 @@ export const Register = asyncHandler(async (req, res) => {
         [data.name, data.email, hashed, tokenHash, tokenExpiry]
     );
 
-    // Send verification email
+    // Send verification email (don't fail registration if email fails)
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     
-    await sendEmail({
-        to: data.email,
-        subject: "Verify Your Email",
-        text: `Please verify your email by clicking on the following link: ${verificationLink}`,
-    });
+    try {
+        await sendEmail({
+            to: data.email,
+            subject: "Verify Your Email",
+            text: `Please verify your email by clicking on the following link: ${verificationLink}`,
+        });
+    } catch (emailError) {
+        console.error('⚠️ Failed to send verification email:', emailError.message);
+        // Don't fail registration — user can resend later
+    }
     
     res.json({ 
         message: "Registration successful! Please check your email to verify your account.",

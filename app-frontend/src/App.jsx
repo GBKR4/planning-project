@@ -27,8 +27,8 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
         <Router>
           <div className="min-h-screen bg-gray-50">
             <Toaster 
@@ -127,8 +127,8 @@ function App() {
           </Routes>
         </div>
       </Router>
-    </QueryClientProvider>
     </ErrorBoundary>
+    </QueryClientProvider>
   )
 }
 

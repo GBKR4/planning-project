@@ -106,8 +106,8 @@ const VerifyEmail = () => {
               <p className="text-gray-700 mb-6 text-lg font-medium">
                 Your email has been successfully verified. You can now log in to your account.
               </p>
-              <Link to="/login">
-                <Button variant="primary" className="w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
+              <Link to="/login" className="cursor-pointer">
+                <Button variant="primary" className="w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all cursor-pointer">
                   🎉 Go to Login
                 </Button>
               </Link>
@@ -158,13 +158,13 @@ const VerifyEmail = () => {
                 </Button>
 
                 <div className="flex space-x-3">
-                  <Link to="/login" className="flex-1">
-                    <button className="w-full px-4 py-3 border-2 border-purple-300 text-purple-700 rounded-xl hover:bg-purple-50 transition-all font-bold shadow-md hover:shadow-lg">
+                  <Link to="/login" className="flex-1 cursor-pointer">
+                    <button className="w-full px-4 py-3 border-2 border-purple-300 text-purple-700 rounded-xl hover:bg-purple-50 transition-all font-bold shadow-md hover:shadow-lg cursor-pointer">
                       🔙 Back to Login
                     </button>
                   </Link>
-                  <Link to="/register" className="flex-1">
-                    <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-bold shadow-md hover:shadow-lg">
+                  <Link to="/register" className="flex-1 cursor-pointer">
+                    <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-bold shadow-md hover:shadow-lg cursor-pointer">
                       ✨ Create Account
                     </button>
                   </Link>

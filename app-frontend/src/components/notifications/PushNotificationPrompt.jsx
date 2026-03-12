@@ -1,9 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Component } from 'react';
 import { usePushNotifications } from '../../hooks/useNotifications';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 
-const PushNotificationPrompt = () => {
+// Error boundary wrapper to prevent PushNotificationPrompt from crashing the app
+class PushNotificationErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.warn('PushNotificationPrompt failed to render (non-critical):', error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null; // Silently hide — push notifications are not critical
+    }
+    return this.props.children;
+  }
+}
+
+const PushNotificationPromptInner = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const { isSupported, isSubscribed, permission, subscribe, isSubscribing } = usePushNotifications();
 
@@ -104,7 +127,7 @@ const PushNotificationPrompt = () => {
           <Button
             onClick={handleEnable}
             disabled={isSubscribing}
-            className="w-full"
+            className="w-full cursor-pointer"
           >
             {isSubscribing ? 'Enabling...' : '🔔 Enable Notifications'}
           </Button>
@@ -113,14 +136,14 @@ const PushNotificationPrompt = () => {
             <Button
               onClick={handleDismiss}
               variant="outline"
-              className="flex-1"
+              className="flex-1 cursor-pointer"
             >
               Maybe Later
             </Button>
             <Button
               onClick={handleNeverAsk}
               variant="outline"
-              className="flex-1 text-gray-500 hover:text-gray-700"
+              className="flex-1 text-gray-500 hover:text-gray-700 cursor-pointer"
             >
               Don't Ask Again
             </Button>
@@ -130,5 +153,12 @@ const PushNotificationPrompt = () => {
     </Modal>
   );
 };
+
+// Export the wrapped version so it never crashes the app
+const PushNotificationPrompt = () => (
+  <PushNotificationErrorBoundary>
+    <PushNotificationPromptInner />
+  </PushNotificationErrorBoundary>
+);
 
 export default PushNotificationPrompt;
