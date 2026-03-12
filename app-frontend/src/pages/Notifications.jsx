@@ -12,6 +12,18 @@ const FILTERS = [
   { value: 'read', label: 'Read' },
 ];
 
+const matchesNotificationType = (selectedType, notificationType) => {
+  if (selectedType === 'all') {
+    return true;
+  }
+
+  if (selectedType === 'overdue_task') {
+    return notificationType === 'overdue_task' || notificationType === 'task_overdue';
+  }
+
+  return notificationType === selectedType;
+};
+
 const Notifications = () => {
   const [filter, setFilter] = useState('all');
   const [type, setType] = useState('all');
@@ -31,7 +43,7 @@ const Notifications = () => {
     notifications?.filter((notification) => {
       const matchesFilter =
         filter === 'all' ? true : filter === 'unread' ? !notification.read : notification.read;
-      const matchesType = type === 'all' ? true : notification.type === type;
+      const matchesType = matchesNotificationType(type, notification.type);
       return matchesFilter && matchesType;
     }) || [];
 
@@ -107,6 +119,7 @@ const Notifications = () => {
                 <option value="all">All Types</option>
                 <option value="task_reminder">Task Reminders</option>
                 <option value="overdue_task">Overdue Tasks</option>
+                <option value="task_starting">Starting Soon</option>
                 <option value="plan_created">Plan Updates</option>
                 <option value="schedule_conflict">Conflicts</option>
               </select>

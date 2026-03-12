@@ -11,12 +11,15 @@ const NotificationItem = ({ notification, onClick }) => {
   const getNotificationIcon = (type) => {
     const iconMap = {
       'task_reminder': <MdSchedule className="text-gray-600" />,
+      'overdue_task': <IoMdAlert className="text-gray-700" />,
       'task_overdue': <IoMdAlert className="text-gray-700" />,
+      'task_starting': <MdSchedule className="text-gray-600" />,
       'plan_created': <MdCalendarToday className="text-gray-600" />,
       'schedule_conflict': <MdWarning className="text-gray-600" />,
       'deadline_approaching': <MdWarning className="text-gray-700" />,
       'task_completed': <MdCheckCircle className="text-gray-600" />,
       'daily_summary': <MdAssessment className="text-gray-600" />,
+      'busy_block_added': <MdCalendarToday className="text-gray-600" />,
       'break_reminder': <MdCoffeeMaker className="text-gray-600" />,
       'welcome': <MdWavingHand className="text-gray-600" />,
       'motivational': <MdStar className="text-gray-600" />
