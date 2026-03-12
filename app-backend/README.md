@@ -12,6 +12,43 @@ A comprehensive task planning and scheduling API with AI-powered task scheduling
 - ✅ **Email Service** - Verification and password reset emails via Resend API
 - ✅ **Security** - Helmet, CORS, rate limiting, SQL injection prevention
 - ✅ **Production Ready** - Comprehensive error handling and validation
+- ✅ **Tested** - 99 integration tests across 6 suites (Jest + Supertest)
+
+## Testing
+
+The backend has a comprehensive integration test suite using **Jest** and **Supertest**.
+
+### Run Tests
+```bash
+# Run all tests
+npm test
+
+# Run with coverage report
+npm run test:coverage
+
+# Run in watch mode (re-runs on file changes)
+npm run test:watch
+```
+
+### Test Suites (99 tests total)
+
+| Suite | Tests | Coverage |
+|---|---|---|
+| `auth.test.js` | 14 | register, login, logout, profile, forgot-password |
+| `tasks.test.js` | 17 | full CRUD, auth guards, ownership checks |
+| `plans.test.js` | 18 | plan generation, mark-done, mark-missed, reschedule |
+| `busyBlocks.test.js` | 9 | create, list, delete |
+| `notifications.test.js` | 14 | preferences, mark read, VAPID public key |
+| `users.test.js` | 12 | profile update, password change, admin operations |
+
+### Technical Setup
+
+- **Native ESM** — runs with `node --experimental-vm-modules`, no Babel transform
+- **`jest.unstable_mockModule()`** — correct ESM mock pattern for mocking `pool.js` and `emailService.js`
+- **No DB required** — all PostgreSQL calls are mocked; tests run fully offline
+- Shared helper `tests/helpers.js` provides `makeToken(userId)` for JWT generation
+
+---
 
 ## Tech Stack
 
@@ -21,6 +58,7 @@ A comprehensive task planning and scheduling API with AI-powered task scheduling
 - **Authentication:** JWT with refresh token rotation
 - **Email:** Resend API 6.7.0
 - **Security:** Helmet, CORS, bcrypt, rate-limit
+- **Testing:** Jest 30, Supertest 7
 - **Development:** nodemon for hot reload
 
 ## Prerequisites

@@ -9,6 +9,16 @@ A full-stack web application that helps students plan their day intelligently by
 
 ## ✨ What's New - March 2026
 
+🧪 **Comprehensive Jest + Supertest Test Suite** — 99 integration tests across 6 test suites covering all API routes:
+- `auth.test.js` (14 tests): register, login, logout, profile, forgot-password
+- `tasks.test.js` (17 tests): full CRUD with auth, ownership, and validation
+- `plans.test.js` (18 tests): plan generation, scheduling, mark-done/missed
+- `busyBlocks.test.js` (9 tests): create, list, delete busy blocks
+- `notifications.test.js` (14 tests): preferences, mark read, VAPID key
+- `users.test.js` (12 tests): profile update, password change, admin ops
+- Native ESM Jest setup (`--experimental-vm-modules`) — no Babel transform needed
+- All 99 tests pass: `npm test` in `app-backend/`
+
 🧪 **Full k6 Load Test Suite** — 4 test files covering every API endpoint with concurrent-load bug fixes and DB pool tuning:
 - Smoke test (2 VUs): 100% checks, 0% failures, p99 = 133ms
 - Auth load (20 VUs): 100% checks, 0% failures, p95 = 606ms
