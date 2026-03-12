@@ -32,9 +32,7 @@ const Login = () => {
       }
       setAuth(response.user, response.accessToken);
       toast.success('Login successful! Redirecting...');
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 100);
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       setIsLoading(false);
       const message = error.response?.data?.message || 'Login failed. Please try again.';
