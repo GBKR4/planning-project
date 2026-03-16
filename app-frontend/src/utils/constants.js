@@ -1,13 +1,12 @@
 // API Configuration
-// In development, use Vite's same-origin proxy so auth and storage are not split
-// across localhost/127.0.0.1 variants.
-export const API_BASE_URL = import.meta.env.DEV
-  ? ''
-  : import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// baseURL is '/api' — Nginx (prod) and Vite proxy (dev) both route /api → localhost:5000
+// Axios combines: '/api' + '/auth/login' = '/api/auth/login' ✅
+//                 '/api' + '/tasks'      = '/api/tasks'      ✅
+export const API_BASE_URL = '/api';
 
-// API Endpoints
+// API Endpoints — paths relative to /api (no /api prefix here)
 export const API_ENDPOINTS = {
-  // Auth (no /api prefix)
+  // Auth
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
   LOGOUT: '/auth/logout',
@@ -16,29 +15,31 @@ export const API_ENDPOINTS = {
   RESET_PASSWORD: '/auth/resetpassword',
   VERIFY_EMAIL: '/auth/verifyemail',
   RESEND_VERIFICATION: '/auth/resend-verification',
-  PROFILE: '/api/profile',
-  CHANGE_PASSWORD: '/api/change-password',
-  
+  PROFILE: '/profile',
+  CHANGE_PASSWORD: '/change-password',
+
   // Tasks
-  TASKS: '/api/tasks',
-  TASK_BY_ID: (id) => `/api/tasks/${id}`,
-  
-  // Busy Blocks (lowercase, no hyphen)
-  BUSY_BLOCKS: '/api/busyblocks',
-  BUSY_BLOCK_BY_ID: (id) => `/api/busyblocks/${id}`,
-  
+  TASKS: '/tasks',
+  TASK_BY_ID: (id) => `/tasks/${id}`,
+
+  // Busy Blocks
+  BUSY_BLOCKS: '/busyblocks',
+  BUSY_BLOCK_BY_ID: (id) => `/busyblocks/${id}`,
+
   // Plans
-  PLANS: '/api/plans',
-  GENERATE_PLAN: '/api/plans/generate',
-  ADD_PLAN_BLOCK: '/api/plans/blockplan',
-  BLOCK_DONE: (blockId) => `/api/plans/blocks/${blockId}/done`,
-  BLOCK_MISSED: (blockId) => `/api/plans/blocks/${blockId}/missed`,
-  
+  PLANS: '/plans',
+  GENERATE_PLAN: '/plans/generate',
+  ADD_PLAN_BLOCK: '/plans/blockplan',
+  BLOCK_DONE: (blockId) => `/plans/blocks/${blockId}/done`,
+  BLOCK_MISSED: (blockId) => `/plans/blocks/${blockId}/missed`,
+
   // Users
-  ME: '/api/me',
-  USERS: '/api/users',
-  USER_BY_ID: (id) => `/api/users/${id}`,
+  ME: '/me',
+  USERS: '/users',
+  USER_BY_ID: (id) => `/users/${id}`,
 };
+
+
 
 // Task Priority Levels
 export const TASK_PRIORITY = {

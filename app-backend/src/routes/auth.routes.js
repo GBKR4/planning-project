@@ -16,7 +16,7 @@ router.post('/auth/logout', authMiddleware, Logout);
 router.post('/auth/refresh', refreshToken);
 router.post("/auth/resetpassword", resetLimiter, resetPassword);
 router.post("/auth/forgotpassword", forgotLimiter, forgotPassword);
-router.get("/api/profile", authMiddleware, (req, res) => {
+router.get("/profile", authMiddleware, (req, res) => {
   res.json(req.user);
 });
 

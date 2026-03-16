@@ -1,4 +1,4 @@
-import express from "express"; 
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -31,9 +31,9 @@ app.use(morgan('combined', { stream: logger.stream }));
 app.use(helmet());
 
 // Dynamic CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ["http://20.244.85.3", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002"];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -61,13 +61,13 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));        
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use("/", authRoutes);
 app.use("/", plansRoutes);
 app.use("/", tasksRoutes);
-app.use("/",usersRoutes);
-app.use("/",busyBlocksRoutes);
+app.use("/", usersRoutes);
+app.use("/", busyBlocksRoutes);
 app.use("/", notificationsRoutes);
 app.get("/health", async (req, res) => {
   try {

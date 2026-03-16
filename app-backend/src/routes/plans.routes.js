@@ -4,11 +4,11 @@ import authMiddleware from "../middleware/auth.js";
 
 const router = Router();
 
-router.post('/api/plans',authMiddleware,addDailyPlan);
-router.post('/api/plans/generate',authMiddleware,generatePlan);
-router.get('/api/plans',authMiddleware,getPlan);
-router.post('/api/plans/blockplan',authMiddleware,addPlanBlock);
-router.post("/api/plans/blocks/:blockId/done", authMiddleware, markBlockDone);
-router.post("/api/plans/blocks/:blockId/missed", authMiddleware, markBlockMissed);
+router.post('/plans',authMiddleware,addDailyPlan);
+router.post('/plans/generate',authMiddleware,generatePlan);
+router.get('/plans',authMiddleware,getPlan);
+router.post('/plans/blockplan',authMiddleware,addPlanBlock);
+router.post("/plans/blocks/:blockId/done", authMiddleware, markBlockDone);
+router.post("/plans/blocks/:blockId/missed", authMiddleware, markBlockMissed);
 
 export default router;

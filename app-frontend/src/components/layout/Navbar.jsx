@@ -70,7 +70,7 @@ const Navbar = () => {
             >
               {user?.profile_photo ? (
                 <img
-                  src={`http://localhost:5000${user.profile_photo}`}
+                  src={user.profile_photo}
                   alt={user?.name}
                   className="h-8 w-8 rounded-full object-cover border-2 border-gray-200"
                 />

@@ -145,7 +145,7 @@ const Profile = () => {
 
   const getProfilePhotoUrl = () => {
     if (photoPreview) return photoPreview;
-    if (user?.profile_photo) return `http://localhost:5000${user.profile_photo}`;
+    if (user?.profile_photo) return user.profile_photo;
     return null;
   };
 

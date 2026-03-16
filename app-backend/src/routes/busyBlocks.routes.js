@@ -4,8 +4,8 @@ import authMiddleware from '../middleware/auth.js';
 
 const router = Router();
 
-router.post("/api/busyblocks",authMiddleware,addBusyBlock);
-router.get("/api/busyblocks",authMiddleware,getBusyBlocks);
-router.delete("/api/busyblocks/:id",authMiddleware,deleteBusyBlock);
+router.post("/busyblocks",authMiddleware,addBusyBlock);
+router.get("/busyblocks",authMiddleware,getBusyBlocks);
+router.delete("/busyblocks/:id",authMiddleware,deleteBusyBlock);
 
 export default router;

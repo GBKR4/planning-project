@@ -4,10 +4,10 @@ import authMiddleware from "../middleware/auth.js"
 
 const router = Router();
 
-router.get('/api/tasks',authMiddleware,getTasks);
-router.post('/api/tasks',authMiddleware,addTask);
-router.get('/api/tasks/:id',authMiddleware,getTaskById);
-router.patch('/api/tasks/:id',authMiddleware,updateTask);
-router.delete('/api/tasks/:id',authMiddleware,deleteTask);
+router.get('/tasks',authMiddleware,getTasks);
+router.post('/tasks',authMiddleware,addTask);
+router.get('/tasks/:id',authMiddleware,getTaskById);
+router.patch('/tasks/:id',authMiddleware,updateTask);
+router.delete('/tasks/:id',authMiddleware,deleteTask);
 
 export default router;
