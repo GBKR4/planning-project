@@ -27,8 +27,24 @@ app.set("trust proxy", 1);
 // HTTP Request logging
 app.use(morgan('combined', { stream: logger.stream }));
 
-// Security middleware
-app.use(helmet());
+// Security middleware — allow Cloudflare Turnstile challenge resources
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://challenges.cloudflare.com"],
+      frameSrc: ["'self'", "https://challenges.cloudflare.com"],
+      connectSrc: ["'self'", "https://challenges.cloudflare.com", "https://gbkr.tech"],
+      fontSrc: ["'self'", "https:", "data:"],
+      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      scriptSrcAttr: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+}));
 
 // Dynamic CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -63,12 +79,12 @@ app.use(express.json());
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-app.use("/", authRoutes);
-app.use("/", plansRoutes);
-app.use("/", tasksRoutes);
-app.use("/", usersRoutes);
-app.use("/", busyBlocksRoutes);
-app.use("/", notificationsRoutes);
+app.use("/api", authRoutes);
+app.use("/api", plansRoutes);
+app.use("/api", tasksRoutes);
+app.use("/api", usersRoutes);
+app.use("/api", busyBlocksRoutes);
+app.use("/api", notificationsRoutes);
 app.get("/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");

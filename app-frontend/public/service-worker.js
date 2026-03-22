@@ -3,7 +3,7 @@
 // Service Worker for Push Notifications
 // This file handles push notifications even when the app is closed
 
-const CACHE_NAME = 'planning-app-v1';
+const CACHE_NAME = 'planning-app-v3';
 
 // Install event - cache essential assets
 self.addEventListener('install', (event) => {
@@ -179,6 +179,13 @@ self.addEventListener('fetch', (event) => {
 
   // Skip caching for API requests
   if (event.request.url.includes('/api/')) {
+    return;
+  }
+
+  // Always fetch index.html from network so the browser gets the latest JS bundle
+  if (event.request.url.endsWith('/') || event.request.url.endsWith('/index.html') ||
+      (!event.request.url.includes('.') && !event.request.url.includes('/api/'))) {
+    event.respondWith(fetch(event.request).catch(() => caches.match('/index.html')));
     return;
   }
 

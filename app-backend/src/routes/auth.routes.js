@@ -5,13 +5,14 @@ import { resetPassword } from "../services/auth/passwordReset.js";
 import { verifyEmail, resendVerificationEmail } from '../services/auth/emailVerification.js';
 import { refreshToken } from '../services/auth/refreshToken.js';
 import { forgotLimiter, resetLimiter, loginLimiter } from "../middleware/rateLimiter.js";
+import { verifyTurnstile } from "../middleware/turnstile.js";
 
 const router = Router();
 
-router.post('/auth/register', Register);
+router.post('/auth/register', verifyTurnstile, Register);
 router.get('/auth/verifyemail', verifyEmail);
 router.post('/auth/resend-verification', resendVerificationEmail);
-router.post('/auth/login', loginLimiter, Login);
+router.post('/auth/login', loginLimiter, verifyTurnstile, Login);
 router.post('/auth/logout', authMiddleware, Logout);
 router.post('/auth/refresh', refreshToken);
 router.post("/auth/resetpassword", resetLimiter, resetPassword);

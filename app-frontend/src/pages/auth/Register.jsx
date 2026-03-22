@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { register as registerApi } from '../../api/authApi';
 import { registerSchema } from '../../utils/validation';
 import Button from '../../components/common/Button';
@@ -12,6 +13,8 @@ const Register = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
 
   const {
     register,
@@ -47,10 +50,14 @@ const Register = () => {
   }, [password]);
 
   const onSubmit = async (data) => {
+    if (!turnstileToken) {
+      toast.error('Please complete the security verification.');
+      return;
+    }
     setIsLoading(true);
     try {
       const { confirmPassword, ...registrationData } = data;
-      await registerApi(registrationData);
+      await registerApi({ ...registrationData, turnstileToken });
       
       toast.success('Account created successfully! Please check your email to verify your account.');
       
@@ -61,6 +68,8 @@ const Register = () => {
       const message = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error(message);
       setIsLoading(false);
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
     }
   };
 
@@ -170,10 +179,32 @@ const Register = () => {
             </div>
           </div>
 
+          {/* Cloudflare Turnstile Widget */}
+          <div className="flex justify-center">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => {
+                setTurnstileToken('');
+                turnstileRef.current?.reset();
+              }}
+              onError={() => {
+                setTurnstileToken('');
+                turnstileRef.current?.reset();
+              }}
+              options={{
+                theme: 'light',
+                retry: 'auto',
+                retryInterval: 3000,
+              }}
+            />
+          </div>
+
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !turnstileToken}
               className="flex w-full justify-center rounded-md border border-transparent bg-gray-900 py-2.5 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50"
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}

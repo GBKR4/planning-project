@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { login as loginApi } from '../../api/authApi';
 import useAuthStore from '../../store/authStore';
 import { loginSchema } from '../../utils/validation';
@@ -13,6 +14,8 @@ const Login = () => {
   const navigate = useNavigate();
   const { login: setAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
 
   const {
     register,
@@ -24,9 +27,13 @@ const Login = () => {
   });
 
   const onSubmit = async (data) => {
+    if (!turnstileToken) {
+      toast.error('Please complete the security verification.');
+      return;
+    }
     setIsLoading(true);
     try {
-      const response = await loginApi(data);
+      const response = await loginApi({ ...data, turnstileToken });
       if (!response.user || !response.accessToken) {
         throw new Error('Invalid login response - missing user or token');
       }
@@ -35,6 +42,8 @@ const Login = () => {
       navigate('/dashboard', { replace: true });
     } catch (error) {
       setIsLoading(false);
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
       const message = error.response?.data?.message || 'Login failed. Please try again.';
       toast.error(message);
     }
@@ -96,10 +105,32 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Cloudflare Turnstile Widget */}
+          <div className="flex justify-center">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => {
+                setTurnstileToken('');
+                turnstileRef.current?.reset();
+              }}
+              onError={() => {
+                setTurnstileToken('');
+                turnstileRef.current?.reset();
+              }}
+              options={{
+                theme: 'light',
+                retry: 'auto',
+                retryInterval: 3000,
+              }}
+            />
+          </div>
+
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !turnstileToken}
               className="flex w-full justify-center rounded-md border border-transparent bg-gray-900 py-2.5 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
